@@ -41,12 +41,12 @@ export function RegistrationForm({
   const [errors, setErrors] = useState<Partial<RegistrationData>>({});
 
   const purposeOptions = [
-    { value: 'business', label: 'Business Meeting' },
-    { value: 'interview', label: 'Job Interview' },
-    { value: 'delivery', label: 'Delivery' },
-    { value: 'contractor', label: 'Contractor/Service' },
-    { value: 'personal', label: 'Personal Visit' },
-    { value: 'other', label: 'Other' }
+    { value: 'Meeting', label: 'Business Meeting' },
+    { value: 'Interview', label: 'Job Interview' },
+    { value: 'Delivery', label: 'Delivery' },
+    { value: 'Service', label: 'Contractor/Service' },
+    { value: 'Personal', label: 'Personal Visit' },
+    { value: 'Other', label: 'Other' }
   ];
 
   const validateForm = (): boolean => {

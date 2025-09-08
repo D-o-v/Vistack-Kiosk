@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast, { Toaster } from 'react-hot-toast';
+import { store } from './store';
+import { useAppSelector, useAppDispatch } from './store/hooks';
+import { guestCheckin, accessCodeCheckin } from './store/slices/checkinSlice';
+import { LoginPage } from './components/auth/LoginPage';
 import { StatusBar } from './components/kiosk/StatusBar';
 import { EnhancedKioskHome } from './components/kiosk/EnhancedKioskHome';
 import { AccessCodeInput } from './components/kiosk/AccessCodeInput';
@@ -20,7 +25,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     },
   },
 });
@@ -38,9 +43,18 @@ type KioskStep =
   | 'emergency';
 
 function KioskApp() {
+  const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { loading: checkinLoading } = useAppSelector((state) => state.checkin);
+  
   const [currentStep, setCurrentStep] = useState<KioskStep>('home');
   const [visitorData, setVisitorData] = useState<Partial<Visitor>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showLogin, setShowLogin] = useState(!isAuthenticated);
+
+  if (showLogin) {
+    return <LoginPage onLoginSuccess={() => setShowLogin(false)} />;
+  }
 
   const handleOptionSelect = (option: string) => {
     switch (option) {
@@ -64,40 +78,55 @@ function KioskApp() {
     }
   };
 
-  const handleAccessCodeSubmit = (code: string) => {
+  const handleAccessCodeSubmit = async (code: string) => {
     setIsLoading(true);
     
-    // Simulate access code validation
-    setTimeout(() => {
-      setVisitorData({
-        id: 'visitor_' + code,
-        name: 'John Smith',
-        email: 'john.smith@company.com',
-        company: 'Tech Corp',
-        guestType: 'business',
-        purpose: 'Business Meeting',
-        hostName: 'Sarah Johnson',
-        badgeNumber: code,
-        checkInTime: new Date(),
-        status: 'checked-in',
-        visitCount: 3
-      } as Visitor);
+    try {
+      const result = await dispatch(accessCodeCheckin({
+        access_code: code,
+        checkin_method: 'qr'
+        // checkin_method: 'access_code'
+      }));
+      
+      if (accessCodeCheckin.fulfilled.match(result)) {
+        const data = result.payload.data;
+        toast.success(`Welcome back, ${data.first_name} ${data.last_name}!`);
+        
+        setVisitorData({
+          id: data.id.toString(),
+          name: `${data.first_name} ${data.last_name}`,
+          email: data.email || 'N/A',
+          company: data.organization_id ? `Org ${data.organization_id}` : 'N/A',
+          guestType: data.person_type,
+          purpose: data.purpose || 'Access Code Check-in',
+          hostName: 'System',
+          badgeNumber: data.visitor_tag || code,
+          checkInTime: new Date(data.checkin_time),
+          status: data.status,
+          visitCount: 1
+        } as Visitor);
+        
+        setIsLoading(false);
+        completeCheckIn();
+      } else {
+        setIsLoading(false);
+        toast.error((result.payload as any)?.message || 'Invalid access code');
+      }
+    } catch (error) {
       setIsLoading(false);
-      completeCheckIn();
-    }, 1500);
+      toast.error('Failed to check in with access code');
+    }
   };
 
   const handleEmailNameSubmit = (emailOrName: string) => {
     setIsLoading(true);
     
-    // Simulate user lookup
     setTimeout(() => {
       const isEmail = emailOrName.includes('@');
-      const isExistingUser = Math.random() > 0.5; // 50% chance of existing user
-      const nameDetected = Math.random() > 0.3; // 70% chance name is detected properly
+      const isExistingUser = Math.random() > 0.5;
+      const nameDetected = Math.random() > 0.3;
       
       if (isExistingUser) {
-        // Returning visitor
         setVisitorData({
           id: 'visitor_' + Math.random().toString(36).substring(7),
           name: nameDetected ? (isEmail ? 'Jane Doe' : emailOrName) : '',
@@ -112,7 +141,6 @@ function KioskApp() {
         setIsLoading(false);
         setCurrentStep('profile-display');
       } else {
-        // New visitor - go to registration
         setVisitorData({
           name: nameDetected ? (isEmail ? '' : emailOrName) : '',
           email: isEmail ? emailOrName : '',
@@ -126,7 +154,6 @@ function KioskApp() {
   const handleProfileCheckIn = () => {
     setIsLoading(true);
     
-    // Update visitor data with check-in info
     setVisitorData(prev => ({
       ...prev,
       checkInTime: new Date(),
@@ -139,33 +166,56 @@ function KioskApp() {
     }, 1000);
   };
 
-  const handleRegistrationSubmit = (data: any) => {
+  const handleRegistrationSubmit = async (data: any) => {
     setIsLoading(true);
     
-    // Simulate registration
-    setTimeout(() => {
-      const nameDetected = Math.random() > 0.2; // 80% chance name is detected in registration
-      setVisitorData({
-        id: 'visitor_' + Math.random().toString(36).substring(7),
-        ...data,
-        name: nameDetected ? data.name : '',
-        guestType: data.purpose,
-        badgeNumber: generateBadgeNumber(),
-        checkInTime: new Date(),
-        status: 'checked-in',
-        visitCount: 1
-      } as Visitor);
+    try {
+      const result = await dispatch(guestCheckin({
+        access_category: 2,
+        checkin_method: 'manual',
+        purpose: data.purpose,
+        first_name: data.name.split(' ')[0] || data.name,
+        last_name: data.name.split(' ').slice(1).join(' ') || '',
+        email: data.email,
+        phone: data.phone,
+        host_id: 2
+      }));
+      
+      if (guestCheckin.fulfilled.match(result)) {
+        const responseData = result.payload.data;
+        toast.success(`Welcome, ${data.name}! Check-in successful.`);
+        
+        setVisitorData({
+          id: responseData?.id?.toString() || 'visitor_' + Math.random().toString(36).substring(7),
+          name: data.name,
+          email: data.email,
+          company: data.company || 'N/A',
+          guestType: data.purpose,
+          purpose: data.purpose,
+          hostName: data.hostName || 'System',
+          badgeNumber: responseData?.visitor_tag || generateBadgeNumber(),
+          checkInTime: new Date(),
+          status: 'checked-in',
+          visitCount: 1
+        } as Visitor);
+        
+        setIsLoading(false);
+        completeCheckIn();
+      } else {
+        setIsLoading(false);
+        toast.error((result.payload as any)?.message || 'Registration failed');
+      }
+    } catch (error) {
       setIsLoading(false);
-      completeCheckIn();
-    }, 2000);
+      toast.error('Failed to register visitor');
+    }
   };
 
   const handleScanSuccess = (scanData: { type: 'qr' | 'face' | 'fingerprint'; value: string }) => {
     setIsLoading(true);
     
-    // Simulate scan processing
     setTimeout(() => {
-      const nameDetected = scanData.type === 'face' ? Math.random() > 0.4 : Math.random() > 0.1; // Face scan has lower detection rate
+      const nameDetected = scanData.type === 'face' ? Math.random() > 0.4 : Math.random() > 0.1;
       setVisitorData({
         id: 'visitor_' + scanData.value,
         name: nameDetected ? 'Alex Johnson' : '',
@@ -184,10 +234,9 @@ function KioskApp() {
     }, 1500);
   };
 
-  const handleCheckoutSubmit = (identifier: string) => {
+  const handleCheckoutSubmit = () => {
     setIsLoading(true);
     
-    // Simulate checkout lookup
     setTimeout(() => {
       setVisitorData({
         id: 'visitor_checkout',
@@ -198,7 +247,7 @@ function KioskApp() {
         purpose: 'Business Meeting',
         hostName: 'John Smith',
         badgeNumber: 'VIS001',
-        checkInTime: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        checkInTime: new Date(Date.now() - 2 * 60 * 60 * 1000),
         checkOutTime: new Date(),
         status: 'checked-out',
         visitCount: 1
@@ -207,6 +256,7 @@ function KioskApp() {
       setCurrentStep('checkout-confirmation');
     }, 1500);
   };
+
   const completeCheckIn = () => {
     setCurrentStep('confirmation');
   };
@@ -243,6 +293,26 @@ function KioskApp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            style: {
+              background: '#10b981',
+            },
+          },
+          error: {
+            style: {
+              background: '#ef4444',
+            },
+          },
+        }}
+      />
       <StatusBar />
       
       <main className="pt-16 sm:pt-20 pb-4 sm:pb-6">
@@ -254,77 +324,84 @@ function KioskApp() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-              {currentStep === 'home' && (
-                <EnhancedKioskHome onOptionSelect={handleOptionSelect} />
-              )}
-              
-              {currentStep === 'access-code' && (
-                <AccessCodeInput
-                  onSubmit={handleAccessCodeSubmit}
-                  onBack={handleBack}
-                  isLoading={isLoading}
-                />
-              )}
-              
-              {currentStep === 'email-name-input' && (
-                <EmailNameInput
-                  onSubmit={handleEmailNameSubmit}
-                  onBack={handleBack}
-                  isLoading={isLoading}
-                />
-              )}
-              
-              {currentStep === 'profile-display' && visitorData && (
-                <ProfileDisplay
-                  visitor={visitorData as Visitor}
-                  onCheckIn={handleProfileCheckIn}
-                  onBack={handleBack}
-                  isLoading={isLoading}
-                />
-              )}
-              
-              {currentStep === 'registration' && (
-                <RegistrationForm
-                  onSubmit={handleRegistrationSubmit}
-                  onBack={handleBack}
-                  isLoading={isLoading}
-                  initialEmail={visitorData.email || ''}
-                  initialName={visitorData.name || ''}
-                />
-              )}
-              
-              {currentStep === 'scanner' && (
-                <EnhancedScanner
-                  onScanSuccess={handleScanSuccess}
-                  onBack={handleBack}
-                />
-              )}
-              
-              {currentStep === 'checkout' && (
-                <CheckoutForm
-                  onSubmit={handleCheckoutSubmit}
-                  onBack={handleBack}
-                  isLoading={isLoading}
-                />
-              )}
-              
-              {currentStep === 'checkout-confirmation' && visitorData && (
-                <CheckoutConfirmation
-                  visitorData={visitorData as Visitor}
-                  onComplete={handleComplete}
-                />
-              )}
-              
-              {currentStep === 'confirmation' && (
-                <CheckInConfirmation
-                  visitorData={visitorData as Visitor}
-                  onComplete={handleComplete}
-                />
-              )}
-              
-              {currentStep === 'emergency' && (
-                <EmergencyContacts onBack={handleBack} />
-              )}
+            {currentStep === 'home' && (
+              <EnhancedKioskHome onOptionSelect={handleOptionSelect} />
+            )}
+            
+            {currentStep === 'access-code' && (
+              <AccessCodeInput
+                onSubmit={handleAccessCodeSubmit}
+                onBack={handleBack}
+                isLoading={isLoading}
+              />
+            )}
+            
+            {currentStep === 'email-name-input' && (
+              <EmailNameInput
+                onSubmit={handleEmailNameSubmit}
+                onBack={handleBack}
+                isLoading={isLoading}
+              />
+            )}
+            
+            {currentStep === 'profile-display' && (
+              <ProfileDisplay
+                visitor={visitorData as Visitor}
+                onCheckIn={handleProfileCheckIn}
+                onBack={handleBack}
+                isLoading={isLoading}
+              />
+            )}
+            
+            {currentStep === 'registration' && (
+              <RegistrationForm
+                onSubmit={handleRegistrationSubmit}
+                onBack={handleBack}
+                isLoading={checkinLoading}
+              />
+            )}
+            
+            {currentStep === 'scanner' && (
+              <EnhancedScanner
+                onScanSuccess={handleScanSuccess}
+                onBack={handleBack}
+              />
+            )}
+            
+            {currentStep === 'checkout' && (
+              <CheckoutForm
+                onSubmit={handleCheckoutSubmit}
+                onBack={handleBack}
+                isLoading={isLoading}
+              />
+            )}
+            
+            {currentStep === 'checkout-confirmation' && (
+              <CheckoutConfirmation
+                visitorData={visitorData as Visitor}
+                onComplete={handleComplete}
+              />
+            )}
+            
+            {currentStep === 'confirmation' && (
+              <CheckInConfirmation
+                visitorData={{
+                  name: visitorData.name || '',
+                  email: visitorData.email,
+                  phone: visitorData.phone,
+                  company: visitorData.company,
+                  purpose: visitorData.purpose || 'Visit',
+                  hostName: visitorData.hostName || 'System',
+                  hostDepartment: visitorData.hostDepartment,
+                  photo: visitorData.photo
+                }}
+                onComplete={handleComplete}
+              />
+            )}
+            
+            {currentStep === 'emergency' && (
+              <EmergencyContacts onBack={handleBack} />
+            )}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -332,14 +409,12 @@ function KioskApp() {
   );
 }
 
-function App() {
+export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
         <KioskApp />
-      </Router>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </Provider>
   );
 }
-
-export default App;
