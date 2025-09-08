@@ -220,6 +220,7 @@ function KioskApp() {
           id: responseData?.id?.toString() || 'visitor_' + Math.random().toString(36).substring(7),
           name: `${responseData?.first_name} ${responseData?.last_name}`,
           email: data.email,
+          phone: data.phone,
           company: data.company || 'N/A',
           guestType: responseData?.person_type || 'guest',
           purpose: responseData?.purpose || data.purpose,
@@ -227,7 +228,13 @@ function KioskApp() {
           badgeNumber: responseData?.visitor_tag || generateBadgeNumber(),
           checkInTime: responseData?.checkin_time ? new Date(responseData.checkin_time) : new Date(),
           status: status,
-          visitCount: 1
+          visitCount: 1,
+          visitor_tag: responseData?.visitor_tag,
+          checkin_method: responseData?.checkin_method,
+          created_at: responseData?.created_at,
+          image_url: responseData?.image_url,
+          document_url: responseData?.document_url,
+          signature_url: responseData?.signature_url
         } as Visitor);
         
         setIsLoading(false);

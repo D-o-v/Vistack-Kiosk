@@ -12,13 +12,19 @@ export interface Visitor {
   checkOutTime?: Date;
   photo?: string;
   badgeNumber?: string;
-  status?: 'checked-in' | 'checked-out' | 'expired';
+  status?: 'checked-in' | 'checked-out' | 'expired' | 'pending' | 'approved';
   emergencyContact?: string;
   notes?: string;
   visitCount?: number;
   employeeId?: string;
   invitationCode?: string;
   appointmentCode?: string;
+  visitor_tag?: string;
+  checkin_method?: string;
+  created_at?: string;
+  image_url?: string;
+  document_url?: string;
+  signature_url?: string;
 }
 
 export interface Appointment {

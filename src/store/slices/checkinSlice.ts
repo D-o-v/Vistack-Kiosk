@@ -26,7 +26,20 @@ export const guestCheckin = createAsyncThunk(
       const response = await checkinAPI.guestCheckin(data);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Check-in failed');
+      const errorData = error.response?.data;
+      if (errorData?.errors) {
+        // Handle validation errors
+        const errorMessages = Object.entries(errorData.errors)
+          .map(([field, messages]: [string, any]) => {
+            if (Array.isArray(messages)) {
+              return `${field}: ${messages.join(', ')}`;
+            }
+            return `${field}: ${messages}`;
+          })
+          .join('; ');
+        return rejectWithValue(errorMessages);
+      }
+      return rejectWithValue(errorData?.message || 'Check-in failed');
     }
   }
 );
@@ -62,7 +75,19 @@ export const lookupVisitor = createAsyncThunk(
       const response = await visitorAPI.lookup(query);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Visitor not found');
+      const errorData = error.response?.data;
+      if (errorData?.errors) {
+        const errorMessages = Object.entries(errorData.errors)
+          .map(([field, messages]: [string, any]) => {
+            if (Array.isArray(messages)) {
+              return messages.join(', ');
+            }
+            return messages;
+          })
+          .join('; ');
+        return rejectWithValue(errorMessages);
+      }
+      return rejectWithValue(errorData?.message || 'Visitor not found');
     }
   }
 );

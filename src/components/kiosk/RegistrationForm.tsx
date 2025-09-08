@@ -1,6 +1,7 @@
 import  { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { UserPlus, ArrowLeft, CheckCircle, AlertCircle, Camera, Upload, FileText, Edit3 } from 'lucide-react';
+import { compressImage, formatFileSize } from '../../lib/imageUtils';
 interface RegistrationData {
   name: string;
   email: string;
@@ -34,7 +35,8 @@ export function RegistrationForm({
     purpose: initialData.purpose || '',
     hostName: initialData.hostName || ''
   });
-  const [errors, setErrors] = useState<Partial<RegistrationData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isCompressing, setIsCompressing] = useState(false);
   const [previews, setPreviews] = useState<{
     image?: string;
     document?: string;
@@ -55,7 +57,7 @@ export function RegistrationForm({
   ];
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<RegistrationData> = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
@@ -90,22 +92,66 @@ export function RegistrationForm({
   const handleInputChange = (field: keyof RegistrationData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
-  const handleFileUpload = (field: 'image' | 'document' | 'signature', file: File) => {
-    setFormData(prev => ({ ...prev, [field]: file }));
+  const handleFileUpload = async (field: 'image' | 'document' | 'signature', file: File) => {
+    // Clear any existing errors for this field
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+    });
     
-    // Create preview for images
-    if (field === 'image' || field === 'signature') {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviews(prev => ({ ...prev, [field]: e.target?.result as string }));
-      };
-      reader.readAsDataURL(file);
+    // Check file size (2MB limit)
+    const maxSize = 2048 * 1024; // 2MB in bytes
+    
+    if (file.size > maxSize) {
+      if (field === 'image' || field === 'signature') {
+        // Compress images
+        setIsCompressing(true);
+        try {
+          const compressedFile = await compressImage(file, 2048);
+          setFormData(prev => ({ ...prev, [field]: compressedFile }));
+          
+          // Create preview
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setPreviews(prev => ({ ...prev, [field]: e.target?.result as string }));
+          };
+          reader.readAsDataURL(compressedFile);
+        } catch (error) {
+          setErrors(prev => ({ ...prev, [field]: 'Failed to compress image. Please try a smaller file.' }));
+        } finally {
+          setIsCompressing(false);
+        }
+      } else {
+        // For documents, show error
+        setErrors(prev => ({ 
+          ...prev, 
+          [field]: `File size (${formatFileSize(file.size)}) exceeds 2MB limit. Please choose a smaller file.` 
+        }));
+        return;
+      }
     } else {
-      setPreviews(prev => ({ ...prev, [field]: file.name }));
+      // File is within size limit
+      setFormData(prev => ({ ...prev, [field]: file }));
+      
+      // Create preview
+      if (field === 'image' || field === 'signature') {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setPreviews(prev => ({ ...prev, [field]: e.target?.result as string }));
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreviews(prev => ({ ...prev, [field]: file.name }));
+      }
     }
   };
 
@@ -242,6 +288,7 @@ export function RegistrationForm({
                         if (file) handleFileUpload('image', file);
                       }}
                     />
+                    {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image}</p>}
                   </div>
 
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-blue-400 transition-colors">
@@ -277,6 +324,7 @@ export function RegistrationForm({
                         if (file) handleFileUpload('document', file);
                       }}
                     />
+                    {errors.document && <p className="text-red-500 text-xs mt-1">{errors.document}</p>}
                   </div>
 
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-blue-400 transition-colors">
@@ -311,6 +359,7 @@ export function RegistrationForm({
                         if (file) handleFileUpload('signature', file);
                       }}
                     />
+                    {errors.signature && <p className="text-red-500 text-xs mt-1">{errors.signature}</p>}
                   </div>
                 </div>
               </div>
@@ -337,15 +386,17 @@ export function RegistrationForm({
                 
                 <button
                   onClick={handleSubmit}
-                  disabled={isLoading}
+                  disabled={isLoading || isCompressing}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-3 rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center space-x-1"
                 >
-                  {isLoading ? (
+                  {(isLoading || isCompressing) ? (
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
                   ) : (
                     <CheckCircle className="w-3 h-3" />
                   )}
-                  <span className="text-sm">{isLoading ? 'Registering...' : 'Complete Registration'}</span>
+                  <span className="text-sm">
+                    {isCompressing ? 'Compressing...' : isLoading ? 'Registering...' : 'Complete Registration'}
+                  </span>
                 </button>
               </div>
             </div>
