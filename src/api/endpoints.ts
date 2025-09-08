@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://checkin.vistacks.com/api';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://checkin.vistacks.com/api' : '/api');
 
 const api = axios.create({
   baseURL: BASE_URL,
