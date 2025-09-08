@@ -70,18 +70,18 @@ export function EmergencyContacts({ onBack }: EmergencyContactsProps) {
         transition={{ duration: 0.3 }}
         className="w-full max-w-4xl"
       >
-        <Card>
-          <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white text-center">
-            <CardTitle className="text-xl sm:text-2xl flex items-center justify-center space-x-2 sm:space-x-3">
-              <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8" />
+        <Card className="max-w-4xl">
+          <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white text-center py-4">
+            <CardTitle className="text-lg sm:text-xl flex items-center justify-center space-x-2">
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
               <span>Emergency Contacts</span>
             </CardTitle>
-            <p className="text-sm sm:text-base text-red-100 mt-2">
-              Select the appropriate contact for immediate assistance
+            <p className="text-xs sm:text-sm text-red-100 mt-1">
+              Select the appropriate contact
             </p>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
               {emergencyContacts.map((contact, index) => {
                 const Icon = getContactIcon(contact.type);
                 const colorClass = getContactColor(contact.type);
@@ -89,30 +89,30 @@ export function EmergencyContacts({ onBack }: EmergencyContactsProps) {
                 return (
                   <motion.div
                     key={contact.type}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    transition={{ duration: 0.2, delay: index * 0.05 }}
                   >
-                    <Card className="cursor-pointer h-full hover:shadow-lg transition-shadow" onClick={() => handleCall(contact)}>
-                      <CardContent className="p-4 text-center">
-                        <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${colorClass} text-white mb-3`}>
-                          <Icon className="w-6 h-6 sm:w-8 sm:h-8" />
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleCall(contact)}>
+                      <CardContent className="p-3 text-center">
+                        <div className={`inline-flex p-2 rounded-lg bg-gradient-to-r ${colorClass} text-white mb-2`}>
+                          <Icon className="w-4 h-4" />
                         </div>
-                        <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
+                        <h3 className="text-sm font-bold text-gray-900 mb-1">
                           {contact.label}
                         </h3>
-                        <p className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                        <p className="text-base font-bold text-gray-900 mb-1">
                           {contact.number}
                         </p>
-                        <p className="text-xs sm:text-sm text-gray-600 mb-4">
+                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">
                           {contact.description}
                         </p>
                         <Button
-                          className={`w-full bg-gradient-to-r ${colorClass} text-white hover:shadow-lg`}
+                          className={`w-full bg-gradient-to-r ${colorClass} text-white text-xs py-2`}
                           size="sm"
                         >
-                          <Phone className="w-4 h-4 mr-2" />
-                          Call Now
+                          <Phone className="w-3 h-3 mr-1" />
+                          Call
                         </Button>
                       </CardContent>
                     </Card>
@@ -124,27 +124,23 @@ export function EmergencyContacts({ onBack }: EmergencyContactsProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-center"
+              transition={{ delay: 0.2 }}
+              className="text-center space-y-3"
             >
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                  <h4 className="text-sm sm:text-base font-semibold text-yellow-800">Important Notice</h4>
-                </div>
-                <p className="text-xs sm:text-sm text-yellow-700">
-                  For life-threatening emergencies, always call 911 first.
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-xs text-yellow-700">
+                  <span className="font-medium">Important:</span> For life-threatening emergencies, always call 911 first.
                 </p>
               </div>
               
               <Button
                 variant="secondary"
-                size="lg"
+                size="md"
                 onClick={onBack}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 mx-auto"
               >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Back to Main Screen</span>
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
               </Button>
             </motion.div>
           </CardContent>
