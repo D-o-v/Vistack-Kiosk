@@ -1,0 +1,2 @@
+/api/* http://checkin.vistacks.com/api/:splat 200
+/* /index.html 200

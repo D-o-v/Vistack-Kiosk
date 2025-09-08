@@ -3,12 +3,17 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    outDir: 'dist',
+    sourcemap: false
+  },
   server: {
     proxy: {
       '/api': {
         target: 'http://checkin.vistacks.com',
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
             console.log('proxy error', err);
