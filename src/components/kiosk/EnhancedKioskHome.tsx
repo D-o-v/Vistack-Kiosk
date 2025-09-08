@@ -20,13 +20,13 @@ export function EnhancedKioskHome({ onOptionSelect }: EnhancedKioskHomeProps) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] flex flex-col">
+    <div className="min-h-[calc(100vh-6rem)] sm:min-h-[calc(100vh-7rem)] flex flex-col py-4 sm:py-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="text-center py-6 sm:py-8"
+        className="text-center py-4 sm:py-6"
       >
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1 sm:mb-2">
           Welcome to Vistacks
@@ -37,7 +37,7 @@ export function EnhancedKioskHome({ onOptionSelect }: EnhancedKioskHomeProps) {
       </motion.div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-3 sm:px-6 pb-6">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6">
 
         {/* Main Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 w-full max-w-4xl mb-4 sm:mb-6">

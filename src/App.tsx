@@ -245,7 +245,7 @@ function KioskApp() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <StatusBar />
       
-      <main className="pt-20">
+      <main className="pt-16 sm:pt-20 pb-4 sm:pb-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}

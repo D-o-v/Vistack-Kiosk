@@ -63,92 +63,93 @@ export function EmergencyContacts({ onBack }: EmergencyContactsProps) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      className="max-w-4xl mx-auto px-8"
-    >
-      <Card>
-        <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white">
-          <CardTitle className="text-4xl text-center flex items-center justify-center space-x-3">
-            <AlertTriangle className="w-10 h-10" />
-            <span>Emergency Contacts</span>
-          </CardTitle>
-          <p className="text-xl text-center text-red-100 mt-2">
-            Select the appropriate contact for immediate assistance
-          </p>
-        </CardHeader>
-        <CardContent className="p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {emergencyContacts.map((contact, index) => {
-              const Icon = getContactIcon(contact.type);
-              const colorClass = getContactColor(contact.type);
-              
-              return (
-                <motion.div
-                  key={contact.type}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                >
-                  <Card className="cursor-pointer h-full" onClick={() => handleCall(contact)}>
-                    <CardContent className="p-6 text-center">
-                      <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${colorClass} text-white mb-4`}>
-                        <Icon className="w-12 h-12" />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">
-                        {contact.label}
-                      </h3>
-                      <p className="text-3xl font-bold text-gray-900 mb-3">
-                        {contact.number}
-                      </p>
-                      <p className="text-sm text-gray-600 mb-6">
-                        {contact.description}
-                      </p>
-                      <Button
-                        className={`w-full bg-gradient-to-r ${colorClass} text-white hover:shadow-lg`}
-                        size="lg"
-                      >
-                        <Phone className="w-5 h-5 mr-2" />
-                        Call Now
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
+    <div className="min-h-[calc(100vh-6rem)] sm:min-h-[calc(100vh-7rem)] flex items-center justify-center px-4 py-4 sm:py-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-4xl"
+      >
+        <Card>
+          <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white text-center">
+            <CardTitle className="text-xl sm:text-2xl flex items-center justify-center space-x-2 sm:space-x-3">
+              <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8" />
+              <span>Emergency Contacts</span>
+            </CardTitle>
+            <p className="text-sm sm:text-base text-red-100 mt-2">
+              Select the appropriate contact for immediate assistance
+            </p>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              {emergencyContacts.map((contact, index) => {
+                const Icon = getContactIcon(contact.type);
+                const colorClass = getContactColor(contact.type);
+                
+                return (
+                  <motion.div
+                    key={contact.type}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <Card className="cursor-pointer h-full hover:shadow-lg transition-shadow" onClick={() => handleCall(contact)}>
+                      <CardContent className="p-4 text-center">
+                        <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${colorClass} text-white mb-3`}>
+                          <Icon className="w-6 h-6 sm:w-8 sm:h-8" />
+                        </div>
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
+                          {contact.label}
+                        </h3>
+                        <p className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                          {contact.number}
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-600 mb-4">
+                          {contact.description}
+                        </p>
+                        <Button
+                          className={`w-full bg-gradient-to-r ${colorClass} text-white hover:shadow-lg`}
+                          size="sm"
+                        >
+                          <Phone className="w-4 h-4 mr-2" />
+                          Call Now
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
           </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="text-center"
-          >
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
-              <div className="flex items-center justify-center space-x-3 mb-3">
-                <AlertTriangle className="w-6 h-6 text-yellow-600" />
-                <h4 className="text-lg font-semibold text-yellow-800">Important Notice</h4>
-              </div>
-              <p className="text-yellow-700">
-                For life-threatening emergencies, always call 911 first. 
-                Building security and reception are for non-emergency assistance only.
-              </p>
-            </div>
-            
-            <Button
-              variant="secondary"
-              size="xl"
-              onClick={onBack}
-              className="flex items-center space-x-3"
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-center"
             >
-              <ArrowLeft className="w-6 h-6" />
-              <span>Back to Main Screen</span>
-            </Button>
-          </motion.div>
-        </CardContent>
-      </Card>
-    </motion.div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                  <h4 className="text-sm sm:text-base font-semibold text-yellow-800">Important Notice</h4>
+                </div>
+                <p className="text-xs sm:text-sm text-yellow-700">
+                  For life-threatening emergencies, always call 911 first.
+                </p>
+              </div>
+              
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={onBack}
+                className="flex items-center space-x-2"
+              >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Back to Main Screen</span>
+              </Button>
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
   );
 }
