@@ -2,14 +2,25 @@ import React from 'react';
 import { cn } from '../../lib/utils';
 import { ChevronDown } from 'lucide-react';
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
   label?: string;
   error?: string;
   options: Array<{ value: string; label: string }>;
+  placeholder?: string;
+  onValueChange?: (value: string) => void;
 }
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, options, ...props }, ref) => {
+  ({ className, label, error, options, placeholder, onValueChange, onChange, ...props }, ref) => {
+    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      if (onValueChange) {
+        onValueChange(e.target.value);
+      }
+      if (onChange) {
+        onChange(e);
+      }
+    };
+
     return (
       <div className="w-full">
         {label && (
@@ -27,8 +38,14 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               className
             )}
             ref={ref}
+            onChange={handleChange}
             {...props}
           >
+            {placeholder && (
+              <option value="" disabled>
+                {placeholder}
+              </option>
+            )}
             {options.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}

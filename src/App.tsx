@@ -3,15 +3,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusBar } from './components/kiosk/StatusBar';
-import { CheckInOptions } from './components/kiosk/CheckInOptions';
-import { NewVisitorForm } from './components/kiosk/NewVisitorForm';
-import { ReturningVisitorForm } from './components/kiosk/ReturningVisitorForm';
-import { QRScanner } from './components/kiosk/QRScanner';
-import { PhotoCapture } from './components/kiosk/PhotoCapture';
+import { EnhancedKioskHome } from './components/kiosk/EnhancedKioskHome';
+import { AccessCodeInput } from './components/kiosk/AccessCodeInput';
+import { EmailNameInput } from './components/kiosk/EmailNameInput';
+import { ProfileDisplay } from './components/kiosk/ProfileDisplay';
+import { RegistrationForm } from './components/kiosk/RegistrationForm';
+import { EnhancedScanner } from './components/kiosk/EnhancedScanner';
 import { CheckInConfirmation } from './components/kiosk/CheckInConfirmation';
+import { CheckoutForm } from './components/kiosk/CheckoutForm';
+import { CheckoutConfirmation } from './components/kiosk/CheckoutConfirmation';
 import { EmergencyContacts } from './components/kiosk/EmergencyContacts';
-import { AppointmentForm } from './components/kiosk/AppointmentForm';
-import { EmployeeForm } from './components/kiosk/EmployeeForm';
 import { generateBadgeNumber } from './lib/utils';
 import { Visitor } from './types';
 
@@ -26,13 +27,13 @@ const queryClient = new QueryClient({
 
 type KioskStep = 
   | 'home'
-  | 'new-visitor-form' 
-  | 'new-visitor-photo'
-  | 'returning-visitor'
-  | 'invited-guest'
-  | 'appointment'
-  | 'employee'
-  | 'check-out'
+  | 'access-code'
+  | 'email-name-input'
+  | 'profile-display'
+  | 'registration'
+  | 'scanner'
+  | 'checkout'
+  | 'checkout-confirmation'
   | 'confirmation'
   | 'emergency';
 
@@ -43,23 +44,17 @@ function KioskApp() {
 
   const handleOptionSelect = (option: string) => {
     switch (option) {
-      case 'new-visitor':
-        setCurrentStep('new-visitor-form');
+      case 'access-code':
+        setCurrentStep('access-code');
         break;
-      case 'returning-visitor':
-        setCurrentStep('returning-visitor');
+      case 'no-access-code':
+        setCurrentStep('email-name-input');
         break;
-      case 'invited-guest':
-        setCurrentStep('invited-guest');
+      case 'scanner':
+        setCurrentStep('scanner');
         break;
-      case 'appointment':
-        setCurrentStep('appointment');
-        break;
-      case 'employee':
-        setCurrentStep('employee');
-        break;
-      case 'check-out':
-        setCurrentStep('check-out');
+      case 'checkout':
+        setCurrentStep('checkout');
         break;
       case 'emergency':
         setCurrentStep('emergency');
@@ -69,104 +64,144 @@ function KioskApp() {
     }
   };
 
-  const handleNewVisitorSubmit = async (data: any) => {
-    setIsLoading(true);
-    setVisitorData(prev => ({ ...prev, ...data }));
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      setCurrentStep('new-visitor-photo');
-    }, 1000);
-  };
-
-  const handlePhotoCapture = (photo: string) => {
-    setVisitorData(prev => ({ ...prev, photo }));
-    completeCheckIn();
-  };
-
-  const handleReturningVisitorSubmit = (visitorId: string) => {
+  const handleAccessCodeSubmit = (code: string) => {
     setIsLoading(true);
     
-    // Simulate API call for returning visitor
+    // Simulate access code validation
     setTimeout(() => {
       setVisitorData({
-        id: visitorId,
+        id: 'visitor_' + code,
         name: 'John Smith',
         email: 'john.smith@company.com',
         company: 'Tech Corp',
-        purpose: 'business',
+        guestType: 'business',
+        purpose: 'Business Meeting',
         hostName: 'Sarah Johnson',
-        badgeNumber: generateBadgeNumber(),
+        badgeNumber: code,
         checkInTime: new Date(),
-        status: 'checked-in'
+        status: 'checked-in',
+        visitCount: 3
       } as Visitor);
       setIsLoading(false);
       completeCheckIn();
     }, 1500);
   };
 
-  const handleInvitedGuestScan = (code: string) => {
+  const handleEmailNameSubmit = (emailOrName: string) => {
     setIsLoading(true);
     
-    // Simulate invitation validation
+    // Simulate user lookup
+    setTimeout(() => {
+      const isEmail = emailOrName.includes('@');
+      const isExistingUser = Math.random() > 0.5; // 50% chance of existing user
+      
+      if (isExistingUser) {
+        // Returning visitor
+        setVisitorData({
+          id: 'visitor_' + Math.random().toString(36).substring(7),
+          name: isEmail ? 'Jane Doe' : emailOrName,
+          email: isEmail ? emailOrName : 'jane.doe@email.com',
+          company: 'Tech Solutions Inc',
+          guestType: 'business',
+          purpose: 'Business Meeting',
+          hostName: 'Mike Johnson',
+          badgeNumber: generateBadgeNumber(),
+          visitCount: 2
+        });
+        setIsLoading(false);
+        setCurrentStep('profile-display');
+      } else {
+        // New visitor - go to registration
+        setVisitorData({
+          name: isEmail ? '' : emailOrName,
+          email: isEmail ? emailOrName : '',
+        });
+        setIsLoading(false);
+        setCurrentStep('registration');
+      }
+    }, 2000);
+  };
+
+  const handleProfileCheckIn = () => {
+    setIsLoading(true);
+    
+    // Update visitor data with check-in info
+    setVisitorData(prev => ({
+      ...prev,
+      checkInTime: new Date(),
+      status: 'checked-in'
+    }));
+    
+    setTimeout(() => {
+      setIsLoading(false);
+      completeCheckIn();
+    }, 1000);
+  };
+
+  const handleRegistrationSubmit = (data: any) => {
+    setIsLoading(true);
+    
+    // Simulate registration
     setTimeout(() => {
       setVisitorData({
-        name: 'Jane Doe',
-        email: 'jane.doe@email.com',
-        company: 'Partner Corp',
-        purpose: 'business',
-        hostName: 'Mike Chen',
-        hostDepartment: 'Product',
-        invitationCode: code,
+        id: 'visitor_' + Math.random().toString(36).substring(7),
+        ...data,
+        guestType: data.purpose,
         badgeNumber: generateBadgeNumber(),
         checkInTime: new Date(),
-        status: 'checked-in'
+        status: 'checked-in',
+        visitCount: 1
       } as Visitor);
       setIsLoading(false);
       completeCheckIn();
     }, 2000);
   };
 
-  const handleAppointmentSubmit = (data: any) => {
+  const handleScanSuccess = (scanData: { type: 'qr' | 'face' | 'fingerprint'; value: string }) => {
     setIsLoading(true);
     
-    // Simulate appointment check-in
+    // Simulate scan processing
     setTimeout(() => {
       setVisitorData({
-        name: data.visitorName,
-        email: data.visitorEmail,
-        phone: data.visitorPhone,
-        purpose: 'appointment',
-        hostName: 'Dr. Sarah Johnson',
-        appointmentCode: data.appointmentCode,
+        id: 'visitor_' + scanData.value,
+        name: 'Alex Johnson',
+        email: 'alex.johnson@company.com',
+        company: 'Innovation Labs',
+        guestType: 'business',
+        purpose: 'Business Meeting',
+        hostName: 'Sarah Wilson',
         badgeNumber: generateBadgeNumber(),
         checkInTime: new Date(),
-        status: 'checked-in'
+        status: 'checked-in',
+        visitCount: 1
       } as Visitor);
       setIsLoading(false);
       completeCheckIn();
     }, 1500);
   };
 
-  const handleEmployeeCheckIn = (data: any) => {
+  const handleCheckoutSubmit = (identifier: string) => {
     setIsLoading(true);
     
-    // Simulate employee check-in
+    // Simulate checkout lookup
     setTimeout(() => {
       setVisitorData({
-        name: data.employeeName,
-        email: data.employeeEmail,
-        purpose: 'employee',
-        hostName: 'Self',
-        employeeId: data.employeeId,
-        badgeNumber: generateBadgeNumber(),
-        checkInTime: new Date(),
-        status: 'checked-in'
+        id: 'visitor_checkout',
+        name: 'Sarah Wilson',
+        email: 'sarah.wilson@company.com',
+        company: 'Tech Solutions',
+        guestType: 'business',
+        purpose: 'Business Meeting',
+        hostName: 'John Smith',
+        badgeNumber: 'VIS001',
+        checkInTime: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        checkOutTime: new Date(),
+        status: 'checked-out',
+        visitCount: 1
       } as Visitor);
       setIsLoading(false);
-      completeCheckIn();
-    }, 1000);
+      setCurrentStep('checkout-confirmation');
+    }, 1500);
   };
   const completeCheckIn = () => {
     setCurrentStep('confirmation');
@@ -179,17 +214,23 @@ function KioskApp() {
 
   const handleBack = () => {
     switch (currentStep) {
-      case 'new-visitor-form':
-      case 'returning-visitor':
-      case 'invited-guest':
-      case 'appointment':
-      case 'employee':
-      case 'check-out':
+      case 'access-code':
+      case 'email-name-input':
+      case 'scanner':
       case 'emergency':
         setCurrentStep('home');
         break;
-      case 'new-visitor-photo':
-        setCurrentStep('new-visitor-form');
+      case 'profile-display':
+        setCurrentStep('email-name-input');
+        break;
+      case 'registration':
+        setCurrentStep('email-name-input');
+        break;
+      case 'checkout':
+        setCurrentStep('home');
+        break;
+      case 'checkout-confirmation':
+        setCurrentStep('home');
         break;
       default:
         setCurrentStep('home');
@@ -197,68 +238,76 @@ function KioskApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen">
       <StatusBar />
       
-      <main className="pt-4 pb-8 px-4 min-h-[calc(100vh-80px)] flex items-center justify-center">
-        <div className="w-full max-w-7xl">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
+      <main className="min-h-[calc(100vh-80px)]">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
               {currentStep === 'home' && (
-                <CheckInOptions onOptionSelect={handleOptionSelect} />
+                <EnhancedKioskHome onOptionSelect={handleOptionSelect} />
               )}
               
-              {currentStep === 'new-visitor-form' && (
-                <NewVisitorForm
-                  onSubmit={handleNewVisitorSubmit}
+              {currentStep === 'access-code' && (
+                <AccessCodeInput
+                  onSubmit={handleAccessCodeSubmit}
                   onBack={handleBack}
                   isLoading={isLoading}
                 />
               )}
               
-              {currentStep === 'new-visitor-photo' && (
-                <PhotoCapture
-                  onPhotoCapture={handlePhotoCapture}
-                  onSkip={() => completeCheckIn()}
-                />
-              )}
-              
-              {currentStep === 'returning-visitor' && (
-                <ReturningVisitorForm
-                  onSubmit={handleReturningVisitorSubmit}
+              {currentStep === 'email-name-input' && (
+                <EmailNameInput
+                  onSubmit={handleEmailNameSubmit}
                   onBack={handleBack}
                   isLoading={isLoading}
                 />
               )}
               
-              {currentStep === 'invited-guest' && (
-                <QRScanner
-                  onScanSuccess={handleInvitedGuestScan}
-                  onBack={handleBack}
-                  title="Scan Invitation Code"
-                  description="Scan your QR code or enter the invitation code manually"
-                />
-              )}
-              
-              {currentStep === 'appointment' && (
-                <AppointmentForm
-                  onSubmit={handleAppointmentSubmit}
+              {currentStep === 'profile-display' && visitorData && (
+                <ProfileDisplay
+                  visitor={visitorData as Visitor}
+                  onCheckIn={handleProfileCheckIn}
                   onBack={handleBack}
                   isLoading={isLoading}
                 />
               )}
               
-              {currentStep === 'employee' && (
-                <EmployeeForm
-                  onSubmit={handleEmployeeCheckIn}
+              {currentStep === 'registration' && (
+                <RegistrationForm
+                  onSubmit={handleRegistrationSubmit}
                   onBack={handleBack}
                   isLoading={isLoading}
+                  initialEmail={visitorData.email || ''}
+                  initialName={visitorData.name || ''}
+                />
+              )}
+              
+              {currentStep === 'scanner' && (
+                <EnhancedScanner
+                  onScanSuccess={handleScanSuccess}
+                  onBack={handleBack}
+                />
+              )}
+              
+              {currentStep === 'checkout' && (
+                <CheckoutForm
+                  onSubmit={handleCheckoutSubmit}
+                  onBack={handleBack}
+                  isLoading={isLoading}
+                />
+              )}
+              
+              {currentStep === 'checkout-confirmation' && visitorData && (
+                <CheckoutConfirmation
+                  visitorData={visitorData as Visitor}
+                  onComplete={handleComplete}
                 />
               )}
               
@@ -272,9 +321,8 @@ function KioskApp() {
               {currentStep === 'emergency' && (
                 <EmergencyContacts onBack={handleBack} />
               )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

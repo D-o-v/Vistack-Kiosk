@@ -1,18 +1,18 @@
 export interface Visitor {
-  id: string;
+  id?: string;
   name: string;
   email?: string;
   phone?: string;
   company?: string;
-  guestType: 'business' | 'interview' | 'delivery' | 'contractor' | 'personal' | 'other';
-  purpose: string;
-  hostName: string;
+  guestType?: 'business' | 'interview' | 'delivery' | 'contractor' | 'personal' | 'other';
+  purpose?: string;
+  hostName?: string;
   hostDepartment?: string;
-  checkInTime: Date;
+  checkInTime?: Date;
   checkOutTime?: Date;
   photo?: string;
   badgeNumber?: string;
-  status: 'checked-in' | 'checked-out' | 'expired';
+  status?: 'checked-in' | 'checked-out' | 'expired';
   emergencyContact?: string;
   notes?: string;
   visitCount?: number;
