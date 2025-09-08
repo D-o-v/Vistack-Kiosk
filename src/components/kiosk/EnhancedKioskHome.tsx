@@ -20,24 +20,27 @@ export function EnhancedKioskHome({ onOptionSelect }: EnhancedKioskHomeProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col items-center justify-center p-3 sm:p-6">
+    <div className="min-h-[calc(100vh-80px)] flex flex-col">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center mb-6 sm:mb-8"
+        transition={{ duration: 0.4 }}
+        className="text-center py-6 sm:py-8"
       >
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2 sm:mb-3">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1 sm:mb-2">
           Welcome to Vistacks
         </h1>
-        <p className="text-sm sm:text-base md:text-lg text-gray-600 font-medium">
+        <p className="text-xs sm:text-sm text-gray-600">
           Choose your preferred option
         </p>
       </motion.div>
 
-      {/* Main Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 w-full max-w-5xl mb-4 sm:mb-6">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-3 sm:px-6 pb-6">
+
+        {/* Main Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 w-full max-w-4xl mb-4 sm:mb-6">
         {/* Check-in with Access Code */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -135,8 +138,8 @@ export function EnhancedKioskHome({ onOptionSelect }: EnhancedKioskHomeProps) {
         </motion.div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+        {/* Quick Actions */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         {/* Scanner Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -169,6 +172,7 @@ export function EnhancedKioskHome({ onOptionSelect }: EnhancedKioskHomeProps) {
             <span className="font-medium">Emergency</span>
           </Button>
         </motion.div>
+        </div>
       </div>
     </div>
   );

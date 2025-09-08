@@ -25,12 +25,13 @@ export function ProfileDisplay({ visitor, onCheckIn, onBack, isLoading = false }
   });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="max-w-2xl mx-auto px-4"
-    >
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-2xl"
+      >
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-center">
           <CardTitle className="text-xl sm:text-2xl flex items-center justify-center space-x-2 sm:space-x-3">
@@ -155,7 +156,8 @@ export function ProfileDisplay({ visitor, onCheckIn, onBack, isLoading = false }
             </div>
           </div>
         </CardContent>
-      </Card>
-    </motion.div>
+        </Card>
+      </motion.div>
+    </div>
   );
 }

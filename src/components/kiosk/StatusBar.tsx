@@ -10,43 +10,40 @@ export function StatusBar() {
   const networkStatus = useNetworkStatus();
 
   return (
-    <div className="flex items-center justify-between w-full px-8 py-6 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
-      <div className="flex items-center space-x-6">
-        <div className="flex items-center space-x-3">
-          <div className="bg-blue-100 p-2 rounded-xl">
-            <Clock className="w-6 h-6 text-blue-600" />
+    <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between w-full px-4 sm:px-6 py-3 sm:py-4 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <div className="flex items-center space-x-3 sm:space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
           </div>
           <div className="text-left">
-            <div className="text-3xl font-bold text-gray-900">{formatTime(dateTime)}</div>
-            <div className="text-base text-gray-600 font-medium">{formatDate(dateTime)}</div>
+            <div className="text-lg sm:text-xl font-bold text-gray-900">{formatTime(dateTime)}</div>
+            <div className="text-xs sm:text-sm text-gray-600 font-medium">{formatDate(dateTime)}</div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-3">
         <motion.div
-          className="flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-xl"
+          className="flex items-center space-x-2 bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg"
           animate={{ opacity: networkStatus.isOnline ? 1 : 0.7 }}
         >
           {networkStatus.isOnline ? (
-            <div className="bg-green-100 p-1 rounded-lg">
-              <Wifi className="w-4 h-4 text-green-600" />
+            <div className="bg-green-100 p-1 rounded">
+              <Wifi className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
             </div>
           ) : (
-            <div className="bg-red-100 p-1 rounded-lg">
-              <WifiOff className="w-4 h-4 text-red-600" />
+            <div className="bg-red-100 p-1 rounded">
+              <WifiOff className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" />
             </div>
           )}
-          <span className={`text-base font-semibold ${networkStatus.isOnline ? 'text-green-600' : 'text-red-600'}`}>
-            {networkStatus.isOnline ? 'Connected' : 'Offline'}
+          <span className={`text-xs sm:text-sm font-medium ${networkStatus.isOnline ? 'text-green-600' : 'text-red-600'}`}>
+            {networkStatus.isOnline ? 'Online' : 'Offline'}
           </span>
-          {networkStatus.latency && (
-            <span className="text-xs text-gray-500">({networkStatus.latency}ms)</span>
-          )}
         </motion.div>
 
-        <div className="text-base text-gray-600 font-medium bg-gray-50 px-4 py-2 rounded-xl">
-          Vistacks Kiosk v2.1
+        <div className="hidden sm:block text-xs text-gray-600 font-medium bg-gray-50 px-3 py-2 rounded-lg">
+          Vistacks v2.1
         </div>
       </div>
     </div>

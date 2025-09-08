@@ -33,12 +33,13 @@ export function CheckoutConfirmation({ visitorData, onComplete }: CheckoutConfir
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-2xl mx-auto px-4"
-    >
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-2xl"
+      >
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white text-center">
           <motion.div
@@ -135,7 +136,8 @@ export function CheckoutConfirmation({ visitorData, onComplete }: CheckoutConfir
             </div>
           </div>
         </CardContent>
-      </Card>
-    </motion.div>
+        </Card>
+      </motion.div>
+    </div>
   );
 }

@@ -56,125 +56,92 @@ export function CheckInConfirmation({ visitorData, onComplete, onPrintBadge }: C
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-6xl mx-auto px-6"
-    >
-      <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="flex items-center justify-center mb-6"
-          >
-            <div className="bg-white/20 rounded-full p-6">
-              <Check className="w-20 h-20" />
-            </div>
-          </motion.div>
-          <CardTitle className="text-5xl text-center font-bold">
-            {visitorData.employeeId ? 'Welcome Back!' : 'Welcome to Vistacks!'}
-          </CardTitle>
-          <p className="text-2xl text-center text-green-100 mt-4">
-            Your check-in is complete
-          </p>
-        </CardHeader>
-        <CardContent className="p-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-8">Visit Details</h3>
-              <div className="space-y-6">
-                {visitDetails.map((detail, index) => (
-                  <motion.div
-                    key={detail.label}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                    className="flex items-center space-x-6 p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl"
-                  >
-                    <div className="bg-blue-100 p-3 rounded-xl">
-                      <detail.icon className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-base font-medium text-gray-600">{detail.label}</p>
-                      <p className="text-xl font-bold text-gray-900">{detail.value}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-between">
-              {visitorData.photo && (
-                <div className="mb-6">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-6">Visitor Photo</h3>
-                  <div className="relative">
-                    <img
-                      src={visitorData.photo}
-                      alt="Visitor"
-                      className="w-64 h-48 object-cover rounded-2xl border-4 border-gray-200 mx-auto shadow-lg"
-                    />
-                    <div className="absolute top-3 right-3 bg-green-500 text-white p-2 rounded-full">
-                      <Check className="w-5 h-5" />
-                    </div>
-                  </div>
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-3xl"
+      >
+        <Card className="overflow-hidden shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-6">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="bg-white/20 rounded-full p-3 w-14 h-14 mx-auto mb-3 flex items-center justify-center"
+            >
+              <Check className="w-8 h-8" />
+            </motion.div>
+            <CardTitle className="text-xl sm:text-2xl font-bold mb-1">
+              Welcome to Vistacks!
+            </CardTitle>
+            <p className="text-sm text-green-100">
+              Your check-in is complete
+            </p>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-5">
+              <h3 className="text-lg font-bold text-gray-900 text-center mb-4">Visit Details</h3>
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0">
+                  <span className="text-sm font-medium text-gray-600">Visitor</span>
+                  <span className="text-base font-bold text-gray-900">{visitorData.name || 'Name not detected'}</span>
                 </div>
-              )}
-
-              <div className="space-y-6">
-                <Button
-                  variant="primary"
-                  size="xl"
-                  onClick={handlePrintBadge}
-                  className="w-full flex items-center justify-center space-x-4"
-                >
-                  <Printer className="w-7 h-7" />
-                  <span className="text-xl">Print Visitor Badge</span>
-                </Button>
-
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-8">
-                  <h4 className="font-bold text-blue-800 mb-4 text-lg text-center">Important Instructions</h4>
-                  <ul className="text-base text-blue-700 space-y-2 text-left">
-                    <li>• Please wear your visitor badge at all times</li>
-                    <li>• {visitorData.employeeId ? 'Welcome back to the office' : 'Your host has been notified of your arrival'}</li>
-                    <li>• Check out before leaving the building</li>
-                    <li>• For emergencies, call security at (555) 911-HELP</li>
-                  </ul>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0">
+                  <span className="text-sm font-medium text-gray-600">Host</span>
+                  <span className="text-base font-bold text-gray-900">{visitorData.hostName || 'Not assigned'}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0">
+                  <span className="text-sm font-medium text-gray-600">Check-in Time</span>
+                  <span className="text-base font-bold text-gray-900">{formatTime(checkInTime)}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm font-medium text-gray-600">Badge Number</span>
+                  <span className="text-base font-bold text-green-600">{badgeNumber}</span>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="mt-12 text-center"
-          >
-            <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-2xl p-8">
-              <div className="flex items-center justify-center space-x-4 mb-6">
-                <div className="bg-gray-300 p-2 rounded-xl">
-                  <Clock className="w-7 h-7 text-gray-600" />
-                </div>
-                <span className="text-2xl font-bold text-gray-900">
-                  Returning to main screen in {countdown} seconds
-                </span>
-              </div>
               <Button
-                variant="secondary"
-                size="xl"
-                onClick={onComplete}
-                className="flex items-center justify-center space-x-3"
+                variant="primary"
+                size="lg"
+                onClick={handlePrintBadge}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center space-x-2 py-3"
               >
-                <span>Continue to Main Screen</span>
-                <ArrowRight className="w-6 h-6" />
+                <Printer className="w-5 h-5" />
+                <span>Print Visitor Badge</span>
               </Button>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="text-center">
+                  <p className="text-sm text-blue-800 font-medium mb-2">Please wear your badge at all times</p>
+                  <p className="text-xs text-blue-600">Your host has been notified • Check out before leaving</p>
+                </div>
+              </div>
             </div>
-          </motion.div>
-        </CardContent>
-      </Card>
-    </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="mt-6 text-center"
+            >
+              <div className="bg-gray-100 rounded-lg p-3">
+                <p className="text-sm text-gray-600 mb-3">Returning to main screen in {countdown}s</p>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={onComplete}
+                  className="flex items-center justify-center space-x-2 mx-auto"
+                >
+                  <span>Continue</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
   );
 }

@@ -94,12 +94,13 @@ function KioskApp() {
     setTimeout(() => {
       const isEmail = emailOrName.includes('@');
       const isExistingUser = Math.random() > 0.5; // 50% chance of existing user
+      const nameDetected = Math.random() > 0.3; // 70% chance name is detected properly
       
       if (isExistingUser) {
         // Returning visitor
         setVisitorData({
           id: 'visitor_' + Math.random().toString(36).substring(7),
-          name: isEmail ? 'Jane Doe' : emailOrName,
+          name: nameDetected ? (isEmail ? 'Jane Doe' : emailOrName) : '',
           email: isEmail ? emailOrName : 'jane.doe@email.com',
           company: 'Tech Solutions Inc',
           guestType: 'business',
@@ -113,7 +114,7 @@ function KioskApp() {
       } else {
         // New visitor - go to registration
         setVisitorData({
-          name: isEmail ? '' : emailOrName,
+          name: nameDetected ? (isEmail ? '' : emailOrName) : '',
           email: isEmail ? emailOrName : '',
         });
         setIsLoading(false);
@@ -143,9 +144,11 @@ function KioskApp() {
     
     // Simulate registration
     setTimeout(() => {
+      const nameDetected = Math.random() > 0.2; // 80% chance name is detected in registration
       setVisitorData({
         id: 'visitor_' + Math.random().toString(36).substring(7),
         ...data,
+        name: nameDetected ? data.name : '',
         guestType: data.purpose,
         badgeNumber: generateBadgeNumber(),
         checkInTime: new Date(),
@@ -162,9 +165,10 @@ function KioskApp() {
     
     // Simulate scan processing
     setTimeout(() => {
+      const nameDetected = scanData.type === 'face' ? Math.random() > 0.4 : Math.random() > 0.1; // Face scan has lower detection rate
       setVisitorData({
         id: 'visitor_' + scanData.value,
-        name: 'Alex Johnson',
+        name: nameDetected ? 'Alex Johnson' : '',
         email: 'alex.johnson@company.com',
         company: 'Innovation Labs',
         guestType: 'business',
@@ -238,10 +242,10 @@ function KioskApp() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <StatusBar />
       
-      <main className="min-h-[calc(100vh-80px)]">
+      <main className="pt-20">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
