@@ -1,17 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { checkinAPI, CheckinRequest, AccessCodeCheckinRequest } from '../../api/endpoints';
+import { checkinAPI, visitorAPI, CheckinRequest, AccessCodeCheckinRequest } from '../../api/endpoints';
 
 interface CheckinState {
   checkins: any[];
   currentCheckin: any | null;
+  visitorLookup: any | null;
   loading: boolean;
+  lookupLoading: boolean;
   error: string | null;
 }
 
 const initialState: CheckinState = {
   checkins: [],
   currentCheckin: null,
+  visitorLookup: null,
   loading: false,
+  lookupLoading: false,
   error: null,
 };
 
@@ -51,6 +55,18 @@ export const getCheckins = createAsyncThunk(
   }
 );
 
+export const lookupVisitor = createAsyncThunk(
+  'checkin/lookupVisitor',
+  async (query: string, { rejectWithValue }) => {
+    try {
+      const response = await visitorAPI.lookup(query);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Visitor not found');
+    }
+  }
+);
+
 const checkinSlice = createSlice({
   name: 'checkin',
   initialState,
@@ -60,6 +76,9 @@ const checkinSlice = createSlice({
     },
     clearCurrentCheckin: (state) => {
       state.currentCheckin = null;
+    },
+    clearVisitorLookup: (state) => {
+      state.visitorLookup = null;
     },
   },
   extraReducers: (builder) => {
@@ -93,9 +112,23 @@ const checkinSlice = createSlice({
       // Get checkins
       .addCase(getCheckins.fulfilled, (state, action) => {
         state.checkins = action.payload;
+      })
+      // Visitor lookup
+      .addCase(lookupVisitor.pending, (state) => {
+        state.lookupLoading = true;
+        state.error = null;
+      })
+      .addCase(lookupVisitor.fulfilled, (state, action) => {
+        state.lookupLoading = false;
+        state.visitorLookup = action.payload;
+      })
+      .addCase(lookupVisitor.rejected, (state, action) => {
+        state.lookupLoading = false;
+        state.visitorLookup = null;
+        state.error = action.payload as string;
       });
   },
 });
 
-export const { clearError, clearCurrentCheckin } = checkinSlice.actions;
+export const { clearError, clearCurrentCheckin, clearVisitorLookup } = checkinSlice.actions;
 export default checkinSlice.reducer;

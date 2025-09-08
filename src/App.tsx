@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import { store } from './store';
 import { useAppSelector, useAppDispatch } from './store/hooks';
-import { guestCheckin, accessCodeCheckin } from './store/slices/checkinSlice';
+import { guestCheckin, accessCodeCheckin, lookupVisitor } from './store/slices/checkinSlice';
 import { LoginPage } from './components/auth/LoginPage';
 import { StatusBar } from './components/kiosk/StatusBar';
 import { EnhancedKioskHome } from './components/kiosk/EnhancedKioskHome';
@@ -85,7 +85,6 @@ function KioskApp() {
       const result = await dispatch(accessCodeCheckin({
         access_code: code,
         checkin_method: 'qr'
-        // checkin_method: 'access_code'
       }));
       
       if (accessCodeCheckin.fulfilled.match(result)) {
@@ -118,37 +117,61 @@ function KioskApp() {
     }
   };
 
-  const handleEmailNameSubmit = (emailOrName: string) => {
+  const handleEmailNameSubmit = async (emailOrPhone: string) => {
     setIsLoading(true);
     
-    setTimeout(() => {
-      const isEmail = emailOrName.includes('@');
-      const isExistingUser = Math.random() > 0.5;
-      const nameDetected = Math.random() > 0.3;
+    try {
+      const result = await dispatch(lookupVisitor(emailOrPhone));
       
-      if (isExistingUser) {
-        setVisitorData({
-          id: 'visitor_' + Math.random().toString(36).substring(7),
-          name: nameDetected ? (isEmail ? 'Jane Doe' : emailOrName) : '',
-          email: isEmail ? emailOrName : 'jane.doe@email.com',
-          company: 'Tech Solutions Inc',
-          guestType: 'business',
-          purpose: 'Business Meeting',
-          hostName: 'Mike Johnson',
-          badgeNumber: generateBadgeNumber(),
-          visitCount: 2
-        });
-        setIsLoading(false);
-        setCurrentStep('profile-display');
+      if (lookupVisitor.fulfilled.match(result)) {
+        const visitor = result.payload;
+        if (visitor && visitor.id) {
+          // Existing visitor found - prefill registration form
+          toast.success(`Welcome back, ${visitor.first_name}!`);
+          
+          setVisitorData({
+            name: `${visitor.first_name} ${visitor.last_name}`,
+            email: visitor.email,
+            phone: visitor.phone,
+            company: visitor.company || '',
+          });
+          
+          setIsLoading(false);
+          setCurrentStep('registration');
+        } else {
+          // No visitor found, go to registration with email/phone prefilled
+          const isEmail = emailOrPhone.includes('@');
+          setVisitorData({
+            name: '',
+            email: isEmail ? emailOrPhone : '',
+            phone: isEmail ? '' : emailOrPhone,
+          });
+          setIsLoading(false);
+          setCurrentStep('registration');
+        }
       } else {
+        // API error or no results, go to registration
+        const isEmail = emailOrPhone.includes('@');
         setVisitorData({
-          name: nameDetected ? (isEmail ? '' : emailOrName) : '',
-          email: isEmail ? emailOrName : '',
+          name: '',
+          email: isEmail ? emailOrPhone : '',
+          phone: isEmail ? '' : emailOrPhone,
         });
         setIsLoading(false);
         setCurrentStep('registration');
       }
-    }, 2000);
+    } catch (error) {
+      // Error occurred, go to registration
+      const isEmail = emailOrPhone.includes('@');
+      setVisitorData({
+        name: '',
+        email: isEmail ? emailOrPhone : '',
+        phone: isEmail ? '' : emailOrPhone,
+      });
+      setIsLoading(false);
+      setCurrentStep('registration');
+      toast.error('Unable to lookup visitor, please register');
+    }
   };
 
   const handleProfileCheckIn = () => {
@@ -178,24 +201,32 @@ function KioskApp() {
         last_name: data.name.split(' ').slice(1).join(' ') || '',
         email: data.email,
         phone: data.phone,
-        host_id: 2
+        host_id: 2,
+        image: data.image,
+        document: data.document,
+        signature: data.signature
       }));
       
       if (guestCheckin.fulfilled.match(result)) {
         const responseData = result.payload.data;
-        toast.success(`Welcome, ${data.name}! Check-in successful.`);
+        const status = responseData?.status || 'pending';
+        const message = status === 'pending' 
+          ? `Registration submitted! Your visitor tag is ${responseData?.visitor_tag}. Please wait for approval.`
+          : `Welcome, ${data.name}! Check-in successful.`;
+        
+        toast.success(message);
         
         setVisitorData({
           id: responseData?.id?.toString() || 'visitor_' + Math.random().toString(36).substring(7),
-          name: data.name,
+          name: `${responseData?.first_name} ${responseData?.last_name}`,
           email: data.email,
           company: data.company || 'N/A',
-          guestType: data.purpose,
-          purpose: data.purpose,
+          guestType: responseData?.person_type || 'guest',
+          purpose: responseData?.purpose || data.purpose,
           hostName: data.hostName || 'System',
           badgeNumber: responseData?.visitor_tag || generateBadgeNumber(),
-          checkInTime: new Date(),
-          status: 'checked-in',
+          checkInTime: responseData?.checkin_time ? new Date(responseData.checkin_time) : new Date(),
+          status: status,
           visitCount: 1
         } as Visitor);
         
@@ -355,6 +386,7 @@ function KioskApp() {
             
             {currentStep === 'registration' && (
               <RegistrationForm
+                initialData={visitorData}
                 onSubmit={handleRegistrationSubmit}
                 onBack={handleBack}
                 isLoading={checkinLoading}

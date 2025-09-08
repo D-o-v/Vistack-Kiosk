@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://checkin.vistacks.com/api';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://checkin.vistacks.com/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -47,6 +47,8 @@ export interface CheckinRequest {
   phone?: string;
   host_id?: number;
   image?: File;
+  document?: File;
+  signature?: File;
 }
 
 export interface AccessCodeCheckinRequest {
@@ -58,21 +60,36 @@ export const authAPI = {
   login: (data: LoginRequest) => api.post('/auth/login', data),
 };
 
+export const visitorAPI = {
+  lookup: (query: string) => api.get(`/visitors/lookup?query=${encodeURIComponent(query)}`),
+};
+
 export const checkinAPI = {
   guestCheckin: (data: CheckinRequest) => {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined) {
-        formData.append(key, value);
+      if (value !== undefined && value !== null) {
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else {
+          formData.append(key, String(value));
+        }
       }
     });
-    return api.post('/checkin', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+    
+    return axios.post(`${BASE_URL}/checkin`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+      },
     });
   },
   
   accessCodeCheckin: (data: AccessCodeCheckinRequest) => 
     api.post('/checkin', data),
+  
+  lookupVisitor: (query: string) => 
+    api.get(`/visitors/lookup?query=${encodeURIComponent(query)}`),
   
   getCheckins: () => api.get('/checkins'),
   

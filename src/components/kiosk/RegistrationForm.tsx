@@ -1,11 +1,6 @@
-import React, { useState } from 'react';
+import  { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { UserPlus, Mail, User, Building, Phone, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { Select } from '../ui/Select';
-
+import { UserPlus, ArrowLeft, CheckCircle, AlertCircle, Camera, Upload, FileText, Edit3 } from 'lucide-react';
 interface RegistrationData {
   name: string;
   email: string;
@@ -13,32 +8,42 @@ interface RegistrationData {
   company?: string;
   purpose: string;
   hostName?: string;
+  image?: File;
+  document?: File;
+  signature?: File;
 }
 
 interface RegistrationFormProps {
   onSubmit: (data: RegistrationData) => void;
   onBack: () => void;
   isLoading?: boolean;
-  initialEmail?: string;
-  initialName?: string;
+  initialData?: Partial<RegistrationData>;
 }
 
 export function RegistrationForm({ 
   onSubmit, 
   onBack, 
   isLoading = false, 
-  initialEmail = '', 
-  initialName = '' 
+  initialData = {} 
 }: RegistrationFormProps) {
   const [formData, setFormData] = useState<RegistrationData>({
-    name: initialName,
-    email: initialEmail,
-    phone: '',
-    company: '',
-    purpose: '',
-    hostName: ''
+    name: initialData.name || '',
+    email: initialData.email || '',
+    phone: initialData.phone || '',
+    company: initialData.company || '',
+    purpose: initialData.purpose || '',
+    hostName: initialData.hostName || ''
   });
   const [errors, setErrors] = useState<Partial<RegistrationData>>({});
+  const [previews, setPreviews] = useState<{
+    image?: string;
+    document?: string;
+    signature?: string;
+  }>({});
+  
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
 
   const purposeOptions = [
     { value: 'Meeting', label: 'Business Meeting' },
@@ -89,164 +94,263 @@ export function RegistrationForm({
     }
   };
 
+  const handleFileUpload = (field: 'image' | 'document' | 'signature', file: File) => {
+    setFormData(prev => ({ ...prev, [field]: file }));
+    
+    // Create preview for images
+    if (field === 'image' || field === 'signature') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviews(prev => ({ ...prev, [field]: e.target?.result as string }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviews(prev => ({ ...prev, [field]: file.name }));
+    }
+  };
+
   return (
-    <div className="min-h-[calc(100vh-6rem)] sm:min-h-[calc(100vh-7rem)] flex items-center justify-center px-4 py-4 sm:py-6">
+    <div className="min-h-screen flex items-start justify-center px-2 py-2 sm:px-4 sm:py-3">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-2xl"
+        className="w-full max-w-lg"
       >
-      <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-green-500 to-blue-600 text-white text-center">
-          <CardTitle className="text-xl sm:text-2xl flex items-center justify-center space-x-2 sm:space-x-3">
-            <UserPlus className="w-6 h-6 sm:w-8 sm:h-8" />
-            <span>New Visitor Registration</span>
-          </CardTitle>
-          <p className="text-green-100 text-sm sm:text-base mt-2">
-            Fill in your details below
-          </p>
-        </CardHeader>
-        
-        <CardContent className="p-4 sm:p-6">
-          <div className="space-y-4 sm:space-y-5">
-            {/* Required Fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Full Name *
-                </label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="Enter your full name"
-                  error={errors.name}
-                  disabled={isLoading}
-                  className="text-sm sm:text-base py-2 sm:py-3"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Email Address *
-                </label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="Enter your email"
-                  error={errors.email}
-                  disabled={isLoading}
-                  className="text-sm sm:text-base py-2 sm:py-3"
-                />
-              </div>
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center py-3">
+            <div className="flex items-center justify-center space-x-2 mb-1">
+              <UserPlus className="w-5 h-5" />
+              <h1 className="text-lg font-bold">New Visitor Registration</h1>
             </div>
-
-            {/* Optional Fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Phone Number
-                </label>
-                <Input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="Enter your phone number"
-                  error={errors.phone}
-                  disabled={isLoading}
-                  className="text-sm sm:text-base py-2 sm:py-3"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Company/Organization
-                </label>
-                <Input
-                  value={formData.company}
-                  onChange={(e) => handleInputChange('company', e.target.value)}
-                  placeholder="Enter your company name"
-                  disabled={isLoading}
-                  className="text-sm sm:text-base py-2 sm:py-3"
-                />
-              </div>
-            </div>
-
-            {/* Purpose and Host */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Purpose of Visit *
-                </label>
-                <Select
-                  value={formData.purpose}
-                  onValueChange={(value) => handleInputChange('purpose', value)}
-                  placeholder="Select purpose of visit"
-                  options={purposeOptions}
-                  error={errors.purpose}
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Person to Meet
-                </label>
-                <Input
-                  value={formData.hostName}
-                  onChange={(e) => handleInputChange('hostName', e.target.value)}
-                  placeholder="Enter host name (optional)"
-                  disabled={isLoading}
-                  className="text-sm sm:text-base py-2 sm:py-3"
-                />
-              </div>
-            </div>
-
-            {/* Info Box */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
-              <div className="flex items-start space-x-2 sm:space-x-3">
-                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-blue-800 text-xs sm:text-sm">
-                  <p className="font-medium mb-1">Registration Info</p>
-                  <p>
-                    You'll receive an access code for future visits. Information is securely stored.
-                  </p>
+            <p className="text-blue-100 text-xs">Fill in your details below</p>
+          </div>
+          
+          <div className="p-3 sm:p-4">
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Full Name *</label>
+                  <input
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="Enter your full name"
+                    disabled={isLoading}
+                    className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Email Address *</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="Enter your email"
+                    disabled={isLoading}
+                    className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
-              <Button
-                onClick={onBack}
-                variant="secondary"
-                size="lg"
-                className="flex items-center justify-center space-x-2 flex-1"
-                disabled={isLoading}
-              >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Back</span>
-              </Button>
-              
-              <Button
-                onClick={handleSubmit}
-                variant="primary"
-                size="lg"
-                className="bg-gradient-to-r from-green-500 to-blue-600 text-white flex items-center justify-center space-x-2 flex-1"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white" />
-                ) : (
-                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                )}
-                <span>{isLoading ? 'Registering...' : 'Complete Registration'}</span>
-              </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="Enter your phone number"
+                    disabled={isLoading}
+                    className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                  {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Company/Organization</label>
+                  <input
+                    value={formData.company}
+                    onChange={(e) => handleInputChange('company', e.target.value)}
+                    placeholder="Enter your company name"
+                    disabled={isLoading}
+                    className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Purpose of Visit *</label>
+                  <select
+                    value={formData.purpose}
+                    onChange={(e) => handleInputChange('purpose', e.target.value)}
+                    disabled={isLoading}
+                    className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    <option value="">Select purpose of visit</option>
+                    {purposeOptions.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                  {errors.purpose && <p className="text-red-500 text-xs mt-1">{errors.purpose}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Person to Meet</label>
+                  <input
+                    value={formData.hostName}
+                    onChange={(e) => handleInputChange('hostName', e.target.value)}
+                    placeholder="Enter host name (optional)"
+                    disabled={isLoading}
+                    className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-medium text-gray-700 mb-2">Additional Information (Optional)</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-blue-400 transition-colors">
+                    {previews.image ? (
+                      <div>
+                        <img src={previews.image} alt="Preview" className="w-8 h-8 mx-auto rounded-full object-cover mb-1" />
+                        <button
+                          onClick={() => imageInputRef.current?.click()}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Change Photo
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <Camera className="w-5 h-5 mx-auto text-gray-400 mb-1" />
+                        <button
+                          onClick={() => imageInputRef.current?.click()}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Take Photo
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload('image', file);
+                      }}
+                    />
+                  </div>
+
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-blue-400 transition-colors">
+                    {previews.document ? (
+                      <div>
+                        <FileText className="w-5 h-5 mx-auto text-green-500 mb-1" />
+                        <p className="text-xs text-gray-600 truncate mb-1">{previews.document}</p>
+                        <button
+                          onClick={() => documentInputRef.current?.click()}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Change ID
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <Upload className="w-5 h-5 mx-auto text-gray-400 mb-1" />
+                        <button
+                          onClick={() => documentInputRef.current?.click()}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Upload ID
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      ref={documentInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload('document', file);
+                      }}
+                    />
+                  </div>
+
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-blue-400 transition-colors">
+                    {previews.signature ? (
+                      <div>
+                        <img src={previews.signature} alt="Signature" className="w-8 h-4 mx-auto object-contain mb-1" />
+                        <button
+                          onClick={() => signatureInputRef.current?.click()}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Change Signature
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <Edit3 className="w-5 h-5 mx-auto text-gray-400 mb-1" />
+                        <button
+                          onClick={() => signatureInputRef.current?.click()}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Add Signature
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      ref={signatureInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload('signature', file);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="w-3 h-3 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-blue-800 text-xs">
+                    <p className="font-medium mb-1">Registration Info</p>
+                    <p>You'll receive an access code for future visits. Information is securely stored.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={onBack}
+                  disabled={isLoading}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors flex items-center justify-center space-x-1"
+                >
+                  <ArrowLeft className="w-3 h-3" />
+                  <span className="text-sm">Back</span>
+                </button>
+                
+                <button
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-3 rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center space-x-1"
+                >
+                  {isLoading ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
+                  ) : (
+                    <CheckCircle className="w-3 h-3" />
+                  )}
+                  <span className="text-sm">{isLoading ? 'Registering...' : 'Complete Registration'}</span>
+                </button>
+              </div>
             </div>
           </div>
-        </CardContent>
-        </Card>
+        </div>
       </motion.div>
     </div>
   );
