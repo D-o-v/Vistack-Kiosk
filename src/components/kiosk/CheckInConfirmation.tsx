@@ -305,7 +305,7 @@ export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: Check
         </motion.div>
         
         {/* Bottom spacing for mobile */}
-        <div className="h-20 sm:h-8"></div>
+        <div className="h-32 sm:h-16"></div>
       </div>
     </div>
   );

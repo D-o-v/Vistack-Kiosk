@@ -51,6 +51,7 @@ function KioskApp() {
   const [visitorData, setVisitorData] = useState<Partial<Visitor>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(!isAuthenticated);
+  const [accessCodeError, setAccessCodeError] = useState('');
 
   if (showLogin) {
     return <LoginPage onLoginSuccess={() => setShowLogin(false)} />;
@@ -59,6 +60,7 @@ function KioskApp() {
   const handleOptionSelect = (option: string) => {
     switch (option) {
       case 'access-code':
+        setAccessCodeError('');
         setCurrentStep('access-code');
         break;
       case 'no-access-code':
@@ -98,11 +100,15 @@ function KioskApp() {
         completeCheckIn();
       } else {
         setIsLoading(false);
-        toast.error((result.payload as any)?.message || 'Invalid access code');
+        const errorMessage = (result.payload as any)?.message || 'Invalid access code';
+        setAccessCodeError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (error) {
       setIsLoading(false);
-      toast.error('Failed to check in with access code');
+      const errorMessage = 'Failed to check in with access code';
+      setAccessCodeError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -345,6 +351,7 @@ function KioskApp() {
                 onSubmit={handleAccessCodeSubmit}
                 onBack={handleBack}
                 isLoading={isLoading}
+                error={accessCodeError}
               />
             )}
             

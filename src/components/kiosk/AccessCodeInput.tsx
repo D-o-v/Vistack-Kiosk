@@ -9,11 +9,14 @@ interface AccessCodeInputProps {
   onSubmit: (code: string) => void;
   onBack: () => void;
   isLoading?: boolean;
+  error?: string;
 }
 
-export function AccessCodeInput({ onSubmit, onBack, isLoading = false }: AccessCodeInputProps) {
+export function AccessCodeInput({ onSubmit, onBack, isLoading = false, error: externalError = '' }: AccessCodeInputProps) {
   const [accessCode, setAccessCode] = useState('');
   const [error, setError] = useState('');
+  
+  const displayError = externalError || error;
 
   const handleSubmit = () => {
     if (!accessCode.trim()) {
@@ -67,20 +70,20 @@ export function AccessCodeInput({ onSubmit, onBack, isLoading = false }: AccessC
                 onKeyPress={handleKeyPress}
                 placeholder="Enter your access code"
                 className="text-center text-lg sm:text-xl font-mono tracking-wider py-3 sm:py-4"
-                error={error}
+                error={displayError}
                 disabled={isLoading}
                 autoFocus
               />
             </div>
 
-            {error && (
+            {displayError && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3"
               >
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                <p className="text-red-700">{error}</p>
+                <p className="text-red-700">{displayError}</p>
               </motion.div>
             )}
 
