@@ -47,9 +47,13 @@ interface CheckInConfirmationProps {
 }
 
 export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: CheckInConfirmationProps) {
+  if (!checkinData) {
+    return <div>Loading...</div>;
+  }
+  
   const checkInTime = new Date(checkinData.checkin_time);
   const visitorName = `${checkinData.first_name} ${checkinData.last_name}`;
-  const hostName = `${checkinData.host.first_name} ${checkinData.host.last_name}`;
+  const hostName = `${checkinData.host?.first_name || ''} ${checkinData.host?.last_name || ''}`.trim();
 
   const handlePrintBadge = () => {
     if (onPrintBadge) {
@@ -110,78 +114,124 @@ export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: Check
             )}
             
             {/* Visitor Details */}
-            <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <Tag className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600">Check-in ID</span>
+            <div className="space-y-4">
+              {/* Personal Information */}
+              <div className="bg-blue-50 rounded-xl p-4">
+                <h4 className="text-sm font-bold text-blue-800 mb-3 flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Personal Information
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-blue-700">First Name</span>
+                    <span className="text-sm font-bold text-blue-900">{checkinData.first_name}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-blue-700">Last Name</span>
+                    <span className="text-sm font-bold text-blue-900">{checkinData.last_name}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-blue-700">Email</span>
+                    <span className="text-sm text-blue-900">{checkinData.email}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-blue-700">Phone</span>
+                    <span className="text-sm text-blue-900">{checkinData.phone}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-blue-700">Company</span>
+                    <span className="text-sm font-bold text-blue-900">{checkinData.visitor?.company || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-blue-700">Visitor Type</span>
+                    <span className="text-sm text-blue-900">{checkinData.visitor?.visitor_type || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-blue-700">Address</span>
+                    <span className="text-sm text-blue-900">{checkinData.visitor?.address || 'N/A'}</span>
+                  </div>
                 </div>
-                <span className="text-base font-bold text-gray-900">#{checkinData.id}</span>
               </div>
-              
-              <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <User className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600">Visitor</span>
+
+              {/* Visit Information */}
+              <div className="bg-green-50 rounded-xl p-4">
+                <h4 className="text-sm font-bold text-green-800 mb-3 flex items-center">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Visit Information
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-green-700">Purpose</span>
+                    <span className="text-sm font-bold text-green-900">{checkinData.purpose}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-green-700">Check-in Method</span>
+                    <span className="text-sm text-green-900 capitalize">{checkinData.checkin_method}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-green-700">Check-in Time</span>
+                    <span className="text-sm font-bold text-green-900">{formatTime(checkInTime)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-green-700">Visitor Tag</span>
+                    <span className="text-sm font-bold text-green-600 bg-green-100 px-2 py-1 rounded">{checkinData.visitor_tag}</span>
+                  </div>
+                  {checkinData.person_type && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-green-700">Person Type</span>
+                      <span className="text-sm text-green-900 capitalize">{checkinData.person_type}</span>
+                    </div>
+                  )}
                 </div>
-                <span className="text-base font-bold text-gray-900">{visitorName}</span>
               </div>
-              
-              <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <Mail className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600">Email</span>
+
+              {/* Host Information */}
+              <div className="bg-purple-50 rounded-xl p-4">
+                <h4 className="text-sm font-bold text-purple-800 mb-3 flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Host Information
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-purple-700">Host Name</span>
+                    <span className="text-sm font-bold text-purple-900">{hostName}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-purple-700">Host Email</span>
+                    <span className="text-sm text-purple-900">{checkinData.host?.email || 'N/A'}</span>
+                  </div>
                 </div>
-                <span className="text-base text-gray-900">{checkinData.email}</span>
               </div>
-              
-              <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <Phone className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600">Phone</span>
+
+              {/* System Information */}
+              {/* <div className="bg-gray-50 rounded-xl p-4">
+                <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center">
+                  <Clock className="w-4 h-4 mr-2" />
+                  System Information
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">Created</span>
+                    <span className="text-sm text-gray-900">{formatTime(new Date(checkinData.created_at))}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">Last Updated</span>
+                    <span className="text-sm text-gray-900">{formatTime(new Date(checkinData.updated_at))}</span>
+                  </div>
+                  {checkinData.checkout_time && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-700">Checkout Time</span>
+                      <span className="text-sm font-bold text-gray-900">{formatTime(new Date(checkinData.checkout_time))}</span>
+                    </div>
+                  )}
+                  {checkinData.approved_by && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-700">Approved By</span>
+                      <span className="text-sm text-gray-900">{checkinData.approved_by}</span>
+                    </div>
+                  )}
                 </div>
-                <span className="text-base text-gray-900">{checkinData.phone}</span>
-              </div>
-              
-              <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <Building className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600">Company</span>
-                </div>
-                <span className="text-base text-gray-900">{checkinData.visitor.company}</span>
-              </div>
-              
-              <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600">Purpose</span>
-                </div>
-                <span className="text-base font-bold text-gray-900">{checkinData.purpose}</span>
-              </div>
-              
-              <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <User className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600">Host</span>
-                </div>
-                <span className="text-base font-bold text-gray-900">{hostName}</span>
-              </div>
-              
-              <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600">Check-in Time</span>
-                </div>
-                <span className="text-base font-bold text-gray-900">{formatTime(checkInTime)}</span>
-              </div>
-              
-              <div className="flex items-center justify-between py-2">
-                <div className="flex items-center space-x-2">
-                  <Tag className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600">Visitor Tag</span>
-                </div>
-                <span className="text-base font-bold text-green-600">{checkinData.visitor_tag}</span>
-              </div>
+              </div> */}
             </div>
 
             {/* Document Links */}
@@ -227,13 +277,13 @@ export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: Check
                   <>
                     <p className="text-sm text-yellow-800 font-medium mb-2">Check-in Submitted Successfully!</p>
                     <p className="text-xs text-yellow-600">Please wait for approval • Your visitor tag is {checkinData.visitor_tag}</p>
-                    <p className="text-xs text-yellow-600 mt-1">Host: {hostName} ({checkinData.host.email})</p>
+                    <p className="text-xs text-yellow-600 mt-1">Host: {hostName} ({checkinData.host?.email || 'N/A'})</p>
                   </>
                 ) : (
                   <>
                     <p className="text-sm text-blue-800 font-medium mb-2">Please wear your badge at all times</p>
                     <p className="text-xs text-blue-600">Your host has been notified • Check out before leaving</p>
-                    <p className="text-xs text-blue-600 mt-1">Host: {hostName} ({checkinData.host.email})</p>
+                    <p className="text-xs text-blue-600 mt-1">Host: {hostName} ({checkinData.host?.email || 'N/A'})</p>
                   </>
                 )}
               </div>
