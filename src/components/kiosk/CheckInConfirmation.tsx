@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, Printer, ArrowLeft, User, Mail, Phone, Building, Clock, Tag, FileText } from 'lucide-react';
+import { Check, Printer, ArrowLeft, User, FileText } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { formatTime } from '../../lib/utils';
 
@@ -52,8 +51,7 @@ export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: Check
   }
   
   const checkInTime = new Date(checkinData.checkin_time);
-  const visitorName = `${checkinData.first_name} ${checkinData.last_name}`;
-  const hostName = `${checkinData.host?.first_name || ''} ${checkinData.host?.last_name || ''}`.trim();
+ const hostName = `${checkinData.host?.first_name || ''} ${checkinData.host?.last_name || ''}`.trim();
 
   const handlePrintBadge = () => {
     if (onPrintBadge) {

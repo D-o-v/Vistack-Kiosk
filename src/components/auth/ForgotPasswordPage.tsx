@@ -95,7 +95,7 @@ export function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) {
       >
         <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
           {/* Header */}
-          <div className="text-center pt-8 pb-6 px-8">
+          <div className="text-center pt-4 pb-3 px-6">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -109,16 +109,16 @@ export function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg"
+              className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg"
             >
-              <Mail className="w-8 h-8 text-white" />
+              <Mail className="w-6 h-6 text-white" />
             </motion.div>
             
             <motion.h1 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-2xl font-bold text-white mb-2"
+              className="text-xl font-bold text-white mb-1"
             >
               Forgot Password?
             </motion.h1>
@@ -133,7 +133,7 @@ export function ForgotPasswordPage({ onBack }: ForgotPasswordPageProps) {
           </div>
 
           {/* Form */}
-          <div className="px-8 pb-8">
+          <div className="px-6 pb-6">
             <form onSubmit={handleSubmit} className="space-y-5">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}

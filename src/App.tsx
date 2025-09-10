@@ -8,6 +8,7 @@ import { useAppSelector, useAppDispatch } from './store/hooks';
 import { guestCheckin, accessCodeCheckin, lookupVisitor, checkout } from './store/slices/checkinSlice';
 import { LoginPage } from './components/auth/LoginPage';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
+import { Router } from './components/Router';
 import { StatusBar } from './components/kiosk/StatusBar';
 import { EnhancedKioskHome } from './components/kiosk/EnhancedKioskHome';
 import { AccessCodeInput } from './components/kiosk/AccessCodeInput';
@@ -56,9 +57,11 @@ function KioskApp() {
   
   // Check for reset password parameters in URL
   const urlParams = new URLSearchParams(window.location.search);
+  const currentPath = window.location.pathname;
   const resetToken = urlParams.get('token');
   const resetEmail = urlParams.get('email');
-  const isResetPassword = resetToken && resetEmail;
+  const isResetMode = urlParams.get('reset') === 'true';
+  const isResetPassword = (resetToken && resetEmail && isResetMode) || currentPath.includes('/reset-password');
 
   if (isResetPassword) {
     return (
@@ -68,6 +71,7 @@ function KioskApp() {
         onSuccess={() => {
           // Clear URL parameters and show login
           window.history.replaceState({}, document.title, window.location.pathname);
+          toast.success('Password reset successful! Please login with your new password.');
           setShowLogin(true);
         }} 
       />
@@ -445,7 +449,9 @@ export default function App() {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <KioskApp />
+        <Router>
+          <KioskApp />
+        </Router>
       </QueryClientProvider>
     </Provider>
   );

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Reset Password - Vistacks Kiosk</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #7c3aed 50%, #1e293b 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-link {
+            display: block;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .test-link:hover {
+            transform: translateY(-2px);
+        }
+        .description {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Test Reset Password Flow</h1>
+        
+        <div class="description">
+            <h3>Test Reset Password Links</h3>
+            <p>Click the links below to test the reset password functionality with sample data:</p>
+        </div>
+
+        <a href="/reset-password.html?token=ef69b5d795dd15fc954c2f0acef8d2b3a42bb330c92e05eaec48da8355ad03db&email=daudavictorodunayo%40gmail.com" class="test-link">
+            Test Reset Password (Sample Token)
+        </a>
+
+        <a href="/?token=ef69b5d795dd15fc954c2f0acef8d2b3a42bb330c92e05eaec48da8355ad03db&email=daudavictorodunayo%40gmail.com&reset=true" class="test-link">
+            Direct Reset Password (Main App)
+        </a>
+
+        <div class="description">
+            <h3>How it works:</h3>
+            <ol>
+                <li><strong>Email Link:</strong> User clicks reset password link from email</li>
+                <li><strong>Redirect Page:</strong> Link goes to <code>/reset-password.html</code> first</li>
+                <li><strong>Parameter Validation:</strong> Page validates token and email parameters</li>
+                <li><strong>Main App:</strong> Redirects to main app with reset=true parameter</li>
+                <li><strong>Reset Form:</strong> Main app shows reset password form</li>
+                <li><strong>API Call:</strong> Form submits to backend API</li>
+                <li><strong>Success:</strong> User is redirected to login page</li>
+            </ol>
+        </div>
+
+        <div class="description">
+            <h3>Sample Email Link Format:</h3>
+            <div class="code">
+                http://localhost:5173/reset-password.html?token=RESET_TOKEN&email=USER_EMAIL
+            </div>
+            
+            <h3>Backend Should Generate:</h3>
+            <div class="code">
+                http://checkin.vistacks.com/reset-password.html?token=RESET_TOKEN&email=USER_EMAIL
+            </div>
+        </div>
+
+        <div class="description">
+            <h3>🚨 Backend Configuration Needed:</h3>
+            <p>The backend needs to be configured to generate proper reset password URLs with the correct domain. The current issue is that emails are being sent with <code>http:///reset-password</code> instead of <code>http://checkin.vistacks.com/reset-password.html</code></p>
+        </div>
+
+        <a href="/" class="test-link" style="background: linear-gradient(135deg, #10b981, #059669);">
+            Back to Main App
+        </a>
+    </div>
+</body>
+</html>
