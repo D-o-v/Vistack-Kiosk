@@ -283,8 +283,9 @@ function KioskApp() {
       }));
       
       if (checkout.fulfilled.match(result)) {
-        const data = result.payload.data;
-        toast.success(`Checkout successful for ${data.first_name} ${data.last_name}!`);
+        const response = result.payload;
+        const data = response.checkin;
+        toast.success(response.message || `Checkout successful for ${data.first_name} ${data.last_name}!`);
         
         setVisitorData(data);
         
@@ -423,7 +424,7 @@ function KioskApp() {
             
             {currentStep === 'checkout-confirmation' && (
               <CheckoutConfirmation
-                visitorData={visitorData as Visitor}
+                visitorData={visitorData as any}
                 onComplete={handleComplete}
               />
             )}

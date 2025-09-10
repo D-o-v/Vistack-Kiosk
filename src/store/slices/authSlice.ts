@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { authAPI, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest } from '../../api/endpoints';
+import { authAPI, LoginRequest } from '../../api/endpoints';
 
 interface AuthState {
   isAuthenticated: boolean;

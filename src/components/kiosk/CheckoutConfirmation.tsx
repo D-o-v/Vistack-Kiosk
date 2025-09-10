@@ -1,16 +1,51 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, Clock, User, Building, Home } from 'lucide-react';
-import { Visitor } from '../../types';
+import { CheckCircle, Clock, User, Building, Home, FileText, Tag, Mail, Phone } from 'lucide-react';
 
 interface CheckoutConfirmationProps {
-  visitorData: Visitor;
+  visitorData: {
+    id: number;
+    organization_id: number;
+    checkin_method: string;
+    status: string;
+    purpose: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    person_type: string;
+    checkin_time: string;
+    checkout_time: string;
+    visitor_tag: string;
+    visitor: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      email: string;
+      phone: string;
+      company: string;
+      visitor_type: string;
+      address: string;
+    };
+    host: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+    approved_by: any;
+    image_url: string | null;
+    document_url: string | null;
+    signature_url: string | null;
+    created_at: string;
+    updated_at: string;
+  };
   onComplete: () => void;
 }
 
 export function CheckoutConfirmation({ visitorData, onComplete }: CheckoutConfirmationProps) {
-  const checkInTime = visitorData.checkInTime ? new Date(visitorData.checkInTime) : new Date();
-  const checkOutTime = new Date();
+  const checkInTime = new Date(visitorData.checkin_time);
+  const checkOutTime = new Date(visitorData.checkout_time);
   const duration = Math.round((checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60));
 
   const formatTime = (date: Date) => {
@@ -52,16 +87,91 @@ export function CheckoutConfirmation({ visitorData, onComplete }: CheckoutConfir
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                    {visitorData.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {`${visitorData.first_name?.[0] || ''}${visitorData.last_name?.[0] || ''}`.toUpperCase() || 'V'}
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-gray-900">{visitorData.name}</h3>
-                    {visitorData.company && (
+                    <h3 className="text-base font-bold text-gray-900">{`${visitorData.first_name} ${visitorData.last_name}`}</h3>
+                    {visitorData.visitor?.company && (
                       <p className="text-sm text-gray-600 flex items-center">
                         <Building className="w-3 h-3 mr-1" />
-                        {visitorData.company}
+                        {visitorData.visitor.company}
                       </p>
                     )}
+                    <p className="text-xs text-gray-500">{visitorData.visitor?.visitor_type}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Personal Information */}
+              <div className="bg-blue-50 rounded-lg p-3">
+                <h4 className="text-sm font-bold text-blue-800 mb-2 flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Personal Information
+                </h4>
+                <div className="space-y-1">
+                  <div className="flex items-center text-sm">
+                    <Mail className="w-3 h-3 mr-2 text-blue-600" />
+                    <span className="text-blue-900">{visitorData.email}</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <Phone className="w-3 h-3 mr-2 text-blue-600" />
+                    <span className="text-blue-900">{visitorData.phone}</span>
+                  </div>
+                  {visitorData.visitor?.address && (
+                    <div className="flex items-center text-sm">
+                      <Home className="w-3 h-3 mr-2 text-blue-600" />
+                      <span className="text-blue-900">{visitorData.visitor.address}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Visit Information */}
+              <div className="bg-green-50 rounded-lg p-3">
+                <h4 className="text-sm font-bold text-green-800 mb-2 flex items-center">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Visit Information
+                </h4>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-700">Purpose:</span>
+                    <span className="text-green-900 font-medium">{visitorData.purpose}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-700">Method:</span>
+                    <span className="text-green-900 capitalize">{visitorData.checkin_method}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-700">Status:</span>
+                    <span className={`font-medium capitalize ${visitorData.status === 'approved' ? 'text-green-800' : 'text-yellow-800'}`}>
+                      {visitorData.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-700">Visitor Tag:</span>
+                    <span className="text-green-900 font-bold bg-green-100 px-2 py-1 rounded text-xs">
+                      {visitorData.visitor_tag}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Host Information */}
+              <div className="bg-purple-50 rounded-lg p-3">
+                <h4 className="text-sm font-bold text-purple-800 mb-2 flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Host Information
+                </h4>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-purple-700">Host Name:</span>
+                    <span className="text-purple-900 font-medium">
+                      {`${visitorData.host?.first_name} ${visitorData.host?.last_name}`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-purple-700">Host Email:</span>
+                    <span className="text-purple-900">{visitorData.host?.email}</span>
                   </div>
                 </div>
               </div>
@@ -89,19 +199,17 @@ export function CheckoutConfirmation({ visitorData, onComplete }: CheckoutConfir
               </div>
 
               {/* Badge Return Reminder */}
-              {visitorData.badgeNumber && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                  <div className="flex items-start space-x-2">
-                    <div className="bg-orange-100 p-1 rounded">
-                      <User className="w-4 h-4 text-orange-600" />
-                    </div>
-                    <div className="text-orange-800">
-                      <p className="font-medium text-sm mb-1">Badge Return</p>
-                      <p className="text-xs">Please return visitor badge #{visitorData.badgeNumber} to the reception desk.</p>
-                    </div>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <div className="flex items-start space-x-2">
+                  <div className="bg-orange-100 p-1 rounded">
+                    <Tag className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <div className="text-orange-800">
+                    <p className="font-medium text-sm mb-1">Badge Return</p>
+                    <p className="text-xs">Please return visitor badge #{visitorData.visitor_tag} to the reception desk.</p>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Action Button */}
               <button
