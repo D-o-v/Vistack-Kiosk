@@ -63,30 +63,30 @@ export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: Check
   };
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center px-4 py-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-lg"
-      >
-        <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="container mx-auto px-4 py-6 max-w-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="bg-white rounded-2xl shadow-xl overflow-hidden"
+        >
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-6">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-8">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="bg-white/20 rounded-full p-3 w-14 h-14 mx-auto mb-3 flex items-center justify-center"
+              className="bg-white/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center"
             >
               <Check className="w-8 h-8" />
             </motion.div>
-            <h1 className="text-xl font-bold mb-1">Welcome to Vistacks!</h1>
-            <p className="text-sm text-green-100">Your check-in is complete</p>
+            <h1 className="text-2xl font-bold mb-2">Welcome to Vistacks!</h1>
+            <p className="text-green-100">Your check-in is complete</p>
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-4">
+          <div className="p-6 sm:p-8 space-y-6">
             {/* Status Badge */}
             <div className="text-center">
               <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
@@ -262,9 +262,9 @@ export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: Check
               variant="primary"
               size="lg"
               onClick={handlePrintBadge}
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center space-x-2 py-3 mb-4"
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center space-x-2 py-4 mb-6 min-h-[56px] text-lg font-medium"
             >
-              <Printer className="w-5 h-5" />
+              <Printer className="w-6 h-6" />
               <span>Print Visitor Badge</span>
             </Button>
 
@@ -290,25 +290,23 @@ export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: Check
             </div>
 
             {/* Back Button */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-center"
-            >
+            <div className="pt-4">
               <Button
                 variant="secondary"
                 size="lg"
                 onClick={onBack}
-                className="w-full flex items-center justify-center space-x-2"
+                className="w-full flex items-center justify-center space-x-2 py-4 min-h-[56px] text-lg font-medium"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-5 h-5" />
                 <span>Back to Home</span>
               </Button>
-            </motion.div>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+        
+        {/* Bottom spacing for mobile */}
+        <div className="h-20 sm:h-8"></div>
+      </div>
     </div>
   );
 }

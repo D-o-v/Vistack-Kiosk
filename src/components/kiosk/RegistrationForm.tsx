@@ -156,12 +156,12 @@ export function RegistrationForm({
   };
 
   return (
-    <div className="min-h-screen flex items-start justify-center px-2 py-2 sm:px-4 sm:py-3">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg"
-      >
+    <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+      <div className="container mx-auto px-4 py-6 max-w-lg">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center py-3">
             <div className="flex items-center justify-center space-x-2 mb-1">
@@ -402,7 +402,9 @@ export function RegistrationForm({
             </div>
           </div>
         </div>
-      </motion.div>
+        </motion.div>
+        <div className="h-20"></div>
+      </div>
     </div>
   );
 }

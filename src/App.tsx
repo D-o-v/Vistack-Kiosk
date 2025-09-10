@@ -304,7 +304,7 @@ function KioskApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <>
       <Toaster
         position="top-center"
         toastOptions={{
@@ -327,7 +327,7 @@ function KioskApp() {
       />
       <StatusBar />
       
-      <main className="pt-16 sm:pt-20 pb-4 sm:pb-6">
+      <main className="pt-16 sm:pt-20">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -409,7 +409,7 @@ function KioskApp() {
           </motion.div>
         </AnimatePresence>
       </main>
-    </div>
+    </>
   );
 }
 
