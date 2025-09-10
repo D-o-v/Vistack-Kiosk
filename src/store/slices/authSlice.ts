@@ -32,7 +32,7 @@ export const login = createAsyncThunk(
 );
 
 export const logout = createAsyncThunk(
-  'auth/logout',
+  'logout',
   async (_, { rejectWithValue }) => {
     try {
       await authAPI.logout();
