@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { LogIn, Mail, Lock, AlertCircle, Shield, Zap } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, Shield, Zap, KeyRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { login, clearError } from '../../store/slices/authSlice';
+import { ForgotPasswordPage } from './ForgotPasswordPage';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
@@ -18,6 +19,8 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
     email: '',
     password: '',
   });
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +43,10 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (error) dispatch(clearError());
   };
+
+  if (showForgotPassword) {
+    return <ForgotPasswordPage onBack={() => setShowForgotPassword(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
@@ -119,14 +126,30 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
                   <Lock className="h-5 w-5 text-white/50" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                  className="w-full pl-12 pr-12 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
                   placeholder="Enter your password"
                   disabled={loading}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-white/50 hover:text-white/70 transition-colors"
+                >
+                  {showPassword ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
               </motion.div>
 
               {error && (
@@ -141,6 +164,22 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
                   </div>
                 </motion.div>
               )}
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.65 }}
+                className="flex justify-end"
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-blue-400 hover:text-blue-300 text-sm underline transition-colors flex items-center space-x-1"
+                >
+                  <KeyRound className="w-3 h-3" />
+                  <span>Forgot Password?</span>
+                </button>
+              </motion.div>
 
               <motion.button
                 initial={{ opacity: 0, y: 20 }}
@@ -172,8 +211,12 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className="mt-6 text-center"
+              className="mt-6 text-center space-y-2"
             >
+              <div className="flex items-center justify-center space-x-2 text-white/40 text-xs">
+                <Shield className="w-3 h-3" />
+                <span>Secure Authentication</span>
+              </div>
               <p className="text-white/50 text-xs">
                 Powered by Vistacks • Secure & Reliable
               </p>

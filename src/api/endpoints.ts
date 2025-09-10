@@ -141,7 +141,7 @@ export const authAPI = {
   
   // Logout
   logout: () => 
-    api.post('/logout'),
+    api.post('/auth/logout'),
   
   // Send email notification
   sendEmailNotification: (data: EmailNotificationRequest) => 

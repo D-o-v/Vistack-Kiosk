@@ -7,6 +7,7 @@ import { store } from './store';
 import { useAppSelector, useAppDispatch } from './store/hooks';
 import { guestCheckin, accessCodeCheckin, lookupVisitor, checkout } from './store/slices/checkinSlice';
 import { LoginPage } from './components/auth/LoginPage';
+import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
 import { StatusBar } from './components/kiosk/StatusBar';
 import { EnhancedKioskHome } from './components/kiosk/EnhancedKioskHome';
 import { AccessCodeInput } from './components/kiosk/AccessCodeInput';
@@ -52,6 +53,26 @@ function KioskApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(!isAuthenticated);
   const [accessCodeError, setAccessCodeError] = useState('');
+  
+  // Check for reset password parameters in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const resetToken = urlParams.get('token');
+  const resetEmail = urlParams.get('email');
+  const isResetPassword = resetToken && resetEmail;
+
+  if (isResetPassword) {
+    return (
+      <ResetPasswordPage 
+        token={resetToken!} 
+        email={resetEmail!} 
+        onSuccess={() => {
+          // Clear URL parameters and show login
+          window.history.replaceState({}, document.title, window.location.pathname);
+          setShowLogin(true);
+        }} 
+      />
+    );
+  }
 
   if (showLogin) {
     return <LoginPage onLoginSuccess={() => setShowLogin(false)} />;
