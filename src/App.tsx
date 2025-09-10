@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import { store } from './store';
 import { useAppSelector, useAppDispatch } from './store/hooks';
-import { guestCheckin, accessCodeCheckin, lookupVisitor } from './store/slices/checkinSlice';
+import { guestCheckin, accessCodeCheckin, lookupVisitor, checkout } from './store/slices/checkinSlice';
 import { LoginPage } from './components/auth/LoginPage';
 import { StatusBar } from './components/kiosk/StatusBar';
 import { EnhancedKioskHome } from './components/kiosk/EnhancedKioskHome';
@@ -84,26 +84,15 @@ function KioskApp() {
     try {
       const result = await dispatch(accessCodeCheckin({
         access_code: code,
-        checkin_method: 'qr'
+        checkin_method: 'access_code',
+        terminal_id: 2
       }));
       
       if (accessCodeCheckin.fulfilled.match(result)) {
         const data = result.payload.data;
         toast.success(`Welcome back, ${data.first_name} ${data.last_name}!`);
         
-        setVisitorData({
-          id: data.id.toString(),
-          name: `${data.first_name} ${data.last_name}`,
-          email: data.email || 'N/A',
-          company: data.organization_id ? `Org ${data.organization_id}` : 'N/A',
-          guestType: data.person_type,
-          purpose: data.purpose || 'Access Code Check-in',
-          hostName: 'System',
-          badgeNumber: data.visitor_tag || code,
-          checkInTime: new Date(data.checkin_time),
-          status: data.status,
-          visitCount: 1
-        } as Visitor);
+        setVisitorData(data);
         
         setIsLoading(false);
         completeCheckIn();
@@ -216,26 +205,7 @@ function KioskApp() {
         
         toast.success(message);
         
-        setVisitorData({
-          id: responseData?.id?.toString() || 'visitor_' + Math.random().toString(36).substring(7),
-          name: `${responseData?.first_name} ${responseData?.last_name}`,
-          email: data.email,
-          phone: data.phone,
-          company: data.company || 'N/A',
-          guestType: responseData?.person_type || 'guest',
-          purpose: responseData?.purpose || data.purpose,
-          hostName: data.hostName || 'System',
-          badgeNumber: responseData?.visitor_tag || generateBadgeNumber(),
-          checkInTime: responseData?.checkin_time ? new Date(responseData.checkin_time) : new Date(),
-          status: status,
-          visitCount: 1,
-          visitor_tag: responseData?.visitor_tag,
-          checkin_method: responseData?.checkin_method,
-          created_at: responseData?.created_at,
-          image_url: responseData?.image_url,
-          document_url: responseData?.document_url,
-          signature_url: responseData?.signature_url
-        } as Visitor);
+        setVisitorData(responseData);
         
         setIsLoading(false);
         completeCheckIn();
@@ -272,27 +242,31 @@ function KioskApp() {
     }, 1500);
   };
 
-  const handleCheckoutSubmit = () => {
+  const handleCheckoutSubmit = async (identifier: string) => {
     setIsLoading(true);
     
-    setTimeout(() => {
-      setVisitorData({
-        id: 'visitor_checkout',
-        name: 'Sarah Wilson',
-        email: 'sarah.wilson@company.com',
-        company: 'Tech Solutions',
-        guestType: 'business',
-        purpose: 'Business Meeting',
-        hostName: 'John Smith',
-        badgeNumber: 'VIS001',
-        checkInTime: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        checkOutTime: new Date(),
-        status: 'checked-out',
-        visitCount: 1
-      } as Visitor);
+    try {
+      const result = await dispatch(checkout({
+        query: identifier,
+        terminal_id: 2
+      }));
+      
+      if (checkout.fulfilled.match(result)) {
+        const data = result.payload.data;
+        toast.success(`Checkout successful for ${data.first_name} ${data.last_name}!`);
+        
+        setVisitorData(data);
+        
+        setIsLoading(false);
+        setCurrentStep('checkout-confirmation');
+      } else {
+        setIsLoading(false);
+        toast.error((result.payload as any)?.message || 'Checkout failed');
+      }
+    } catch (error) {
       setIsLoading(false);
-      setCurrentStep('checkout-confirmation');
-    }, 1500);
+      toast.error('Failed to checkout visitor');
+    }
   };
 
   const completeCheckIn = () => {
@@ -424,17 +398,8 @@ function KioskApp() {
             
             {currentStep === 'confirmation' && (
               <CheckInConfirmation
-                visitorData={{
-                  name: visitorData.name || '',
-                  email: visitorData.email,
-                  phone: visitorData.phone,
-                  company: visitorData.company,
-                  purpose: visitorData.purpose || 'Visit',
-                  hostName: visitorData.hostName || 'System',
-                  hostDepartment: visitorData.hostDepartment,
-                  photo: visitorData.photo
-                }}
-                onComplete={handleComplete}
+                checkinData={visitorData as any}
+                onBack={handleComplete}
               />
             )}
             

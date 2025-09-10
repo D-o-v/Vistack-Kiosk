@@ -1,51 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, Printer, ArrowRight } from 'lucide-react';
+import { Check, Printer, ArrowLeft, User, Mail, Phone, Building, Clock, Tag, FileText } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { formatTime, generateBadgeNumber } from '../../lib/utils';
+import { formatTime } from '../../lib/utils';
 
 interface CheckInConfirmationProps {
-  visitorData: {
-    id?: string;
-    name: string;
-    email?: string;
-    phone?: string;
-    company?: string;
+  checkinData: {
+    id: number;
+    organization_id: number;
+    checkin_method: string;
+    status: string;
     purpose: string;
-    hostName: string;
-    hostDepartment?: string;
-    photo?: string;
-    visitor_tag?: string;
-    status?: string;
-    checkin_method?: string;
-    created_at?: string;
-    image_url?: string;
-    document_url?: string;
-    signature_url?: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    person_type: string | null;
+    checkin_time: string;
+    checkout_time: string | null;
+    visitor_tag: string;
+    visitor: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      email: string;
+      phone: string;
+      company: string;
+      visitor_type: string;
+      address: string;
+    };
+    host: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+    approved_by: any;
+    image_url: string | null;
+    document_url: string | null;
+    signature_url: string | null;
+    created_at: string;
+    updated_at: string;
   };
-  onComplete: () => void;
+  onBack: () => void;
   onPrintBadge?: () => void;
 }
 
-export function CheckInConfirmation({ visitorData, onComplete, onPrintBadge }: CheckInConfirmationProps) {
-  const [countdown, setCountdown] = useState(15);
-  const badgeNumber = visitorData.visitor_tag || generateBadgeNumber();
-  const checkInTime = visitorData.created_at ? new Date(visitorData.created_at) : new Date();
-  const status = visitorData.status || 'pending';
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          onComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [onComplete]);
+export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: CheckInConfirmationProps) {
+  const checkInTime = new Date(checkinData.checkin_time);
+  const visitorName = `${checkinData.first_name} ${checkinData.last_name}`;
+  const hostName = `${checkinData.host.first_name} ${checkinData.host.last_name}`;
 
   const handlePrintBadge = () => {
     if (onPrintBadge) {
@@ -82,23 +86,23 @@ export function CheckInConfirmation({ visitorData, onComplete, onPrintBadge }: C
             {/* Status Badge */}
             <div className="text-center">
               <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
-                status === 'approved' ? 'bg-green-100 text-green-800' :
-                status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                checkinData.status === 'approved' ? 'bg-green-100 text-green-800' :
+                checkinData.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                 'bg-gray-100 text-gray-800'
               }`}>
-                {status === 'pending' ? 'Pending Approval' : 
-                 status === 'approved' ? 'Approved' : 
-                 status.charAt(0).toUpperCase() + status.slice(1)}
+                {checkinData.status === 'pending' ? 'Pending Approval' : 
+                 checkinData.status === 'approved' ? 'Approved' : 
+                 checkinData.status.charAt(0).toUpperCase() + checkinData.status.slice(1)}
               </span>
             </div>
 
-            <h3 className="text-lg font-bold text-gray-900 text-center">Registration Complete</h3>
+            <h3 className="text-lg font-bold text-gray-900 text-center">Check-in Complete</h3>
             
             {/* Visitor Photo */}
-            {visitorData.image_url && (
+            {checkinData.image_url && (
               <div className="text-center">
                 <img 
-                  src={visitorData.image_url} 
+                  src={checkinData.image_url} 
                   alt="Visitor Photo" 
                   className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-green-200"
                 />
@@ -107,60 +111,95 @@ export function CheckInConfirmation({ visitorData, onComplete, onPrintBadge }: C
             
             {/* Visitor Details */}
             <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm font-medium text-gray-600">Visitor ID</span>
-                <span className="text-base font-bold text-gray-900">#{visitorData.id}</span>
+              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <Tag className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-600">Check-in ID</span>
+                </div>
+                <span className="text-base font-bold text-gray-900">#{checkinData.id}</span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm font-medium text-gray-600">Visitor</span>
-                <span className="text-base font-bold text-gray-900">{visitorData.name}</span>
+              
+              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <User className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-600">Visitor</span>
+                </div>
+                <span className="text-base font-bold text-gray-900">{visitorName}</span>
               </div>
-              {visitorData.email && (
-                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+              
+              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-4 h-4 text-gray-500" />
                   <span className="text-sm font-medium text-gray-600">Email</span>
-                  <span className="text-base text-gray-900">{visitorData.email}</span>
                 </div>
-              )}
-              {visitorData.phone && (
-                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                <span className="text-base text-gray-900">{checkinData.email}</span>
+              </div>
+              
+              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4 text-gray-500" />
                   <span className="text-sm font-medium text-gray-600">Phone</span>
-                  <span className="text-base text-gray-900">{visitorData.phone}</span>
                 </div>
-              )}
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm font-medium text-gray-600">Purpose</span>
-                <span className="text-base font-bold text-gray-900">{visitorData.purpose}</span>
+                <span className="text-base text-gray-900">{checkinData.phone}</span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm font-medium text-gray-600">Check-in Method</span>
-                <span className="text-base text-gray-900">{visitorData.checkin_method || 'Manual'}</span>
+              
+              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <Building className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-600">Company</span>
+                </div>
+                <span className="text-base text-gray-900">{checkinData.visitor.company}</span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm font-medium text-gray-600">Registration Time</span>
+              
+              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-600">Purpose</span>
+                </div>
+                <span className="text-base font-bold text-gray-900">{checkinData.purpose}</span>
+              </div>
+              
+              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <User className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-600">Host</span>
+                </div>
+                <span className="text-base font-bold text-gray-900">{hostName}</span>
+              </div>
+              
+              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-600">Check-in Time</span>
+                </div>
                 <span className="text-base font-bold text-gray-900">{formatTime(checkInTime)}</span>
               </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-sm font-medium text-gray-600">Visitor Tag</span>
-                <span className="text-base font-bold text-green-600">{badgeNumber}</span>
+              
+              <div className="flex items-center justify-between py-2">
+                <div className="flex items-center space-x-2">
+                  <Tag className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-600">Visitor Tag</span>
+                </div>
+                <span className="text-base font-bold text-green-600">{checkinData.visitor_tag}</span>
               </div>
             </div>
 
             {/* Document Links */}
-            {(visitorData.document_url || visitorData.signature_url) && (
+            {(checkinData.document_url || checkinData.signature_url) && (
               <div className="bg-blue-50 rounded-lg p-3">
                 <h4 className="text-sm font-medium text-blue-800 mb-2">Uploaded Documents</h4>
                 <div className="space-y-1">
-                  {visitorData.document_url && (
+                  {checkinData.document_url && (
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-blue-600">ID Document</span>
-                      <a href={visitorData.document_url} target="_blank" rel="noopener noreferrer" 
+                      <a href={checkinData.document_url} target="_blank" rel="noopener noreferrer" 
                          className="text-xs text-blue-800 hover:underline">View</a>
                     </div>
                   )}
-                  {visitorData.signature_url && (
+                  {checkinData.signature_url && (
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-blue-600">Signature</span>
-                      <a href={visitorData.signature_url} target="_blank" rel="noopener noreferrer" 
+                      <a href={checkinData.signature_url} target="_blank" rel="noopener noreferrer" 
                          className="text-xs text-blue-800 hover:underline">View</a>
                     </div>
                   )}
@@ -173,7 +212,7 @@ export function CheckInConfirmation({ visitorData, onComplete, onPrintBadge }: C
               variant="primary"
               size="lg"
               onClick={handlePrintBadge}
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center space-x-2 py-3"
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center space-x-2 py-3 mb-4"
             >
               <Printer className="w-5 h-5" />
               <span>Print Visitor Badge</span>
@@ -181,42 +220,41 @@ export function CheckInConfirmation({ visitorData, onComplete, onPrintBadge }: C
 
             {/* Status Message */}
             <div className={`border rounded-lg p-4 ${
-              status === 'pending' ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'
+              checkinData.status === 'pending' ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'
             }`}>
               <div className="text-center">
-                {status === 'pending' ? (
+                {checkinData.status === 'pending' ? (
                   <>
-                    <p className="text-sm text-yellow-800 font-medium mb-2">Registration Submitted Successfully!</p>
-                    <p className="text-xs text-yellow-600">Please wait for approval • Your visitor tag is {badgeNumber}</p>
+                    <p className="text-sm text-yellow-800 font-medium mb-2">Check-in Submitted Successfully!</p>
+                    <p className="text-xs text-yellow-600">Please wait for approval • Your visitor tag is {checkinData.visitor_tag}</p>
+                    <p className="text-xs text-yellow-600 mt-1">Host: {hostName} ({checkinData.host.email})</p>
                   </>
                 ) : (
                   <>
                     <p className="text-sm text-blue-800 font-medium mb-2">Please wear your badge at all times</p>
                     <p className="text-xs text-blue-600">Your host has been notified • Check out before leaving</p>
+                    <p className="text-xs text-blue-600 mt-1">Host: {hostName} ({checkinData.host.email})</p>
                   </>
                 )}
               </div>
             </div>
 
-            {/* Continue Button */}
+            {/* Back Button */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
               className="text-center"
             >
-              <div className="bg-gray-100 rounded-lg p-3">
-                <p className="text-sm text-gray-600 mb-3">Returning to main screen in {countdown}s</p>
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={onComplete}
-                  className="flex items-center justify-center space-x-2 mx-auto"
-                >
-                  <span>Continue</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={onBack}
+                className="w-full flex items-center justify-center space-x-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Home</span>
+              </Button>
             </motion.div>
           </div>
         </div>

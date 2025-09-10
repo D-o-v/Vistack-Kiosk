@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { authAPI, LoginRequest } from '../../api/endpoints';
+import { authAPI, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest } from '../../api/endpoints';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -31,16 +31,48 @@ export const login = createAsyncThunk(
   }
 );
 
+export const logout = createAsyncThunk(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      await authAPI.logout();
+      localStorage.removeItem('access_token');
+      return true;
+    } catch (error: any) {
+      localStorage.removeItem('access_token');
+      return rejectWithValue(error.response?.data?.message || 'Logout failed');
+    }
+  }
+);
+
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email: string, { rejectWithValue }) => {
+    try {
+      const response = await authAPI.forgotPassword({ email });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to send reset email');
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async (data: { token: string; email: string; password: string; password_confirmation: string }, { rejectWithValue }) => {
+    try {
+      const response = await authAPI.resetPassword(data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Password reset failed');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    logout: (state) => {
-      state.isAuthenticated = false;
-      state.token = null;
-      state.user = null;
-      localStorage.removeItem('access_token');
-    },
     clearError: (state) => {
       state.error = null;
     },
@@ -60,9 +92,46 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(logout.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(logout.fulfilled, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.token = null;
+        state.user = null;
+      })
+      .addCase(logout.rejected, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.token = null;
+        state.user = null;
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { clearError } = authSlice.actions;
 export default authSlice.reducer;

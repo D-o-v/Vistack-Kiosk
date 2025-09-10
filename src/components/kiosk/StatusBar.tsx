@@ -12,9 +12,14 @@ export function StatusBar() {
   const dateTime = useDateTime();
   const networkStatus = useNetworkStatus();
 
-  const handleLogout = () => {
-    dispatch(logout());
-    window.location.reload();
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout());
+      window.location.reload();
+    } catch (error) {
+      console.error('Logout failed:', error);
+      window.location.reload();
+    }
   };
 
   return (
@@ -56,7 +61,7 @@ export function StatusBar() {
         
         <button
           onClick={handleLogout}
-          className="flex items-center space-x-1 bg-red-50 hover:bg-red-100 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors"
+          className="flex items-center justify-center space-x-1 bg-red-50 hover:bg-red-100 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors"
           title="Logout"
         >
           <LogOut className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" />

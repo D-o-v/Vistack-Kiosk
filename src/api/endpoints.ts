@@ -31,13 +31,46 @@ api.interceptors.response.use(
   }
 );
 
+// Auth Interfaces
 export interface LoginRequest {
   terminal_id: number;
   email: string;
   password: string;
 }
 
-export interface CheckinRequest {
+export interface RegisterUserRequest {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  organization_name: string;
+  organization_email: string;
+  organization_phone: string;
+}
+
+export interface RegisterExistingOrgRequest {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  organization_id: number;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+// Checkin Interfaces
+export interface GuestCheckinRequest {
   access_category: number;
   checkin_method: string;
   purpose: string;
@@ -54,18 +87,78 @@ export interface CheckinRequest {
 export interface AccessCodeCheckinRequest {
   access_code: string;
   checkin_method: string;
+  terminal_id: number;
 }
 
+export interface CheckoutRequest {
+  query: string;
+  terminal_id: number;
+}
+
+export interface ApproveCheckinRequest {
+  action: string;
+  comment?: string;
+}
+
+export interface AssignTagRequest {
+  visitor_tag: string;
+  comment?: string;
+}
+
+// Notification Interfaces
+export interface EmailNotificationRequest {
+  to: string;
+  subject: string;
+  template: string;
+  data: Record<string, any>;
+}
+
+// Auth API
 export const authAPI = {
-  login: (data: LoginRequest) => api.post('/auth/login', data),
+  // Register new organization + admin user
+  registerUser: (data: RegisterUserRequest) => 
+    api.post('/auth/registeruser', data),
+  
+  // Register new user (join existing org)
+  register: (data: RegisterExistingOrgRequest) => 
+    api.post('/auth/register', data),
+  
+  // Terminal user login
+  login: (data: LoginRequest) => 
+    api.post('/auth/login', data),
+  
+  // Update profile
+  updateProfile: (data: { first_name?: string; last_name?: string }) => 
+    api.put('/user/profile', data),
+  
+  // Forgot password
+  forgotPassword: (data: ForgotPasswordRequest) => 
+    api.post('/auth/forgot-password', data),
+  
+  // Reset password
+  resetPassword: (data: ResetPasswordRequest) => 
+    api.post('/auth/reset-password', data),
+  
+  // Logout
+  logout: () => 
+    api.post('/logout'),
+  
+  // Send email notification
+  sendEmailNotification: (data: EmailNotificationRequest) => 
+    api.post('/notifications/email', data),
 };
 
+// Visitor API
 export const visitorAPI = {
-  lookup: (query: string) => api.get(`/visitors/lookup?query=${encodeURIComponent(query)}`),
+  // Lookup visitor by email or phone
+  lookup: (query: string) => 
+    api.get(`/visitors/lookup?query=${encodeURIComponent(query)}`),
 };
 
+// Checkin API
 export const checkinAPI = {
-  guestCheckin: (data: CheckinRequest) => {
+  // Guest/Visitor checkin (without access code)
+  guestCheckin: (data: GuestCheckinRequest) => {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
@@ -81,23 +174,34 @@ export const checkinAPI = {
       headers: {
         'Content-Type': 'multipart/form-data',
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Accept': 'application/json',
       },
     });
   },
   
+  // Checkin with access code
   accessCodeCheckin: (data: AccessCodeCheckinRequest) => 
     api.post('/checkin', data),
   
-  lookupVisitor: (query: string) => 
-    api.get(`/visitors/lookup?query=${encodeURIComponent(query)}`),
+  // Checkout visitor
+  checkout: (data: CheckoutRequest) => 
+    api.post('/checkout', data),
   
-  getCheckins: () => api.get('/checkins'),
+  // List user checkins
+  getCheckins: () => 
+    api.get('/checkins'),
   
-  approveCheckin: (id: number, comment?: string) => 
-    api.put(`/checkin/${id}/approve`, { action: 'approved', comment }),
+  // Approve checkin
+  approveCheckin: (id: number, data: ApproveCheckinRequest) => 
+    api.put(`/checkin/${id}/approve`, data),
   
+  // Reject checkin
   rejectCheckin: (id: number) => 
     api.put(`/checkin/${id}/reject`, { action: 'rejected' }),
+  
+  // Assign visitor tag
+  assignTag: (id: number, data: AssignTagRequest) => 
+    api.put(`/checkin/${id}/assign-tag`, data),
 };
 
 export default api;

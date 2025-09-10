@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { checkinAPI, visitorAPI, CheckinRequest, AccessCodeCheckinRequest } from '../../api/endpoints';
+import { checkinAPI, visitorAPI, GuestCheckinRequest, AccessCodeCheckinRequest, CheckoutRequest } from '../../api/endpoints';
 
 interface CheckinState {
   checkins: any[];
@@ -21,7 +21,7 @@ const initialState: CheckinState = {
 
 export const guestCheckin = createAsyncThunk(
   'checkin/guestCheckin',
-  async (data: CheckinRequest, { rejectWithValue }) => {
+  async (data: GuestCheckinRequest, { rejectWithValue }) => {
     try {
       const response = await checkinAPI.guestCheckin(data);
       return response.data;
@@ -92,6 +92,18 @@ export const lookupVisitor = createAsyncThunk(
   }
 );
 
+export const checkout = createAsyncThunk(
+  'checkin/checkout',
+  async (data: CheckoutRequest, { rejectWithValue }) => {
+    try {
+      const response = await checkinAPI.checkout(data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Checkout failed');
+    }
+  }
+);
+
 const checkinSlice = createSlice({
   name: 'checkin',
   initialState,
@@ -150,6 +162,19 @@ const checkinSlice = createSlice({
       .addCase(lookupVisitor.rejected, (state, action) => {
         state.lookupLoading = false;
         state.visitorLookup = null;
+        state.error = action.payload as string;
+      })
+      // Checkout
+      .addCase(checkout.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(checkout.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentCheckin = action.payload;
+      })
+      .addCase(checkout.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload as string;
       });
   },
