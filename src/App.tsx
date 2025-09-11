@@ -313,7 +313,15 @@ function KioskApp() {
     }
   };
 
-  const handleScanSuccess = (scanData: { type: 'qr' | 'face' | 'fingerprint'; value: string }) => {
+  const handleScanSuccess = (scanData: { type: 'qr' | 'face' | 'fingerprint'; value: string; checkinData?: any }) => {
+    // For QR scans, use the real checkin data from API
+    if (scanData.type === 'qr' && scanData.checkinData) {
+      setVisitorData(scanData.checkinData.data || scanData.checkinData);
+      completeCheckIn();
+      return;
+    }
+    
+    // Handle face/fingerprint scans with mock data
     setIsLoading(true);
     
     setTimeout(() => {

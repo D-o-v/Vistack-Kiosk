@@ -9,7 +9,7 @@ import { qrCheckin } from '../../store/slices/checkinSlice';
 import toast from 'react-hot-toast';
 
 interface EnhancedScannerProps {
-  onScanSuccess: (data: { type: 'qr' | 'face' | 'fingerprint'; value: string }) => void;
+  onScanSuccess: (data: { type: 'qr' | 'face' | 'fingerprint'; value: string; checkinData?: any }) => void;
   onBack: () => void;
 }
 
@@ -43,7 +43,7 @@ export function EnhancedScanner({ onScanSuccess, onBack }: EnhancedScannerProps)
       if (qrCheckin.fulfilled.match(result)) {
         toast.success('Check-in successful!');
         setTimeout(() => {
-          onScanSuccess({ type: 'qr', value: accessCode });
+          onScanSuccess({ type: 'qr', value: accessCode, checkinData: result.payload });
           processingRef.current = false;
         }, 1500);
       } else {
