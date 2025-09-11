@@ -121,28 +121,32 @@ export interface EmailNotificationRequest {
   data: Record<string, any>;
 }
 
-// Terminals API
+// Organization API
+export const organizationAPI = {
+  verifyOrganization: (code: string) => api.get(`/auth/organizations/verify?code=${code}`),
+};
+
+// Terminals API (deprecated - use organization verification)
 export const terminalsAPI = {
   getTerminals: async () => {
-    try {
-      return await api.get('/terminals');
-    } catch (error) {
-      // Fallback if terminals endpoint doesn't exist
-      return {
-        data: {
-          data: [
-            { id: 1, name: 'Main Entrance', location: 'Lobby', status: 'active', organization_id: 1 },
-            { id: 2, name: 'Reception Desk', location: 'Front Desk', status: 'active', organization_id: 1 },
-            { id: 3, name: 'Security Gate', location: 'Gate A', status: 'active', organization_id: 1 }
-          ]
-        }
-      };
-    }
+    // Fallback terminals if organization verification fails
+    return {
+      data: {
+        data: [
+          { id: 1, name: 'Main Entrance', location: 'Lobby', status: 'active', organization_id: 1 },
+          { id: 2, name: 'Reception Desk', location: 'Front Desk', status: 'active', organization_id: 1 },
+          { id: 3, name: 'Security Gate', location: 'Gate A', status: 'active', organization_id: 1 }
+        ]
+      }
+    };
   },
 };
 
 // Auth API
 export const authAPI = {
+  // Verify organization
+  verifyOrganization: (code: string) => 
+    api.get(`/auth/organizations/verify?code=${code}`),
   // Register new organization + admin user
   registerUser: (data: RegisterUserRequest) => 
     api.post('/auth/registeruser', data),
@@ -212,11 +216,14 @@ export const checkinAPI = {
     api.post('/checkin', data),
   
   // QR Code checkin
-  qrCheckin: (accessCode: string) => 
-    api.post('/checkin', {
+  qrCheckin: (accessCode: string) => {
+    const terminalId = parseInt(localStorage.getItem('terminal_id') || '2');
+    return api.post('/checkin', {
       access_code: accessCode,
-      checkin_method: 'qr'
-    }),
+      checkin_method: 'qr',
+      terminal_id: terminalId
+    });
+  },
   
   // Checkout visitor
   checkout: (data: CheckoutRequest) => 

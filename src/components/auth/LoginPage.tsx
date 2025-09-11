@@ -5,13 +5,14 @@ import toast from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { login, clearError } from '../../store/slices/authSlice';
 import { ForgotPasswordPage } from './ForgotPasswordPage';
-import { terminalsAPI, Terminal } from '../../api/endpoints';
+import { Terminal } from '../../api/endpoints';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
+  organization?: any;
 }
 
-export function LoginPage({ onLoginSuccess }: LoginPageProps) {
+export function LoginPage({ onLoginSuccess, organization }: LoginPageProps) {
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.auth);
   
@@ -31,14 +32,18 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
   const fetchTerminals = async () => {
     try {
-      const response = await terminalsAPI.getTerminals();
-      const terminalData = response.data.data || response.data || [];
+      // Use organization terminals from verification
+      const terminalData = organization?.terminals || [];
+      
       setTerminals(terminalData);
       if (terminalData.length > 0) {
         setFormData(prev => ({ ...prev, terminal_id: terminalData[0].id }));
+      } else {
+        // Fallback if no terminals in organization
+        setFormData(prev => ({ ...prev, terminal_id: 2 }));
       }
     } catch (error) {
-      console.error('Failed to fetch terminals:', error);
+      console.error('Failed to load terminals:', error);
       setFormData(prev => ({ ...prev, terminal_id: 2 }));
     } finally {
       setLoadingTerminals(false);
@@ -101,7 +106,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               transition={{ delay: 0.3 }}
               className="text-3xl font-bold text-white mb-2"
             >
-              Vistacks Kiosk
+              {organization?.name || 'Vistacks Kiosk'}
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 10 }}
@@ -109,7 +114,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               transition={{ delay: 0.4 }}
               className="text-white/70 text-sm"
             >
-              Secure visitor management system
+              {organization?.name ? 'Visitor Management System' : 'Secure visitor management system'}
             </motion.p>
           </div>
 

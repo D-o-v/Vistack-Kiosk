@@ -5,6 +5,7 @@ interface AuthState {
   isAuthenticated: boolean;
   token: string | null;
   user: any | null;
+  terminal_id: number | null;
   loading: boolean;
   error: string | null;
 }
@@ -13,6 +14,7 @@ const initialState: AuthState = {
   isAuthenticated: !!localStorage.getItem('access_token'),
   token: localStorage.getItem('access_token'),
   user: null,
+  terminal_id: localStorage.getItem('terminal_id') ? parseInt(localStorage.getItem('terminal_id')!) : null,
   loading: false,
   error: null,
 };
@@ -24,7 +26,8 @@ export const login = createAsyncThunk(
       const response = await authAPI.login(credentials);
       const { access_token, user } = response.data;
       localStorage.setItem('access_token', access_token);
-      return { token: access_token, user };
+      localStorage.setItem('terminal_id', credentials.terminal_id.toString());
+      return { token: access_token, user, terminal_id: credentials.terminal_id };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
@@ -37,9 +40,11 @@ export const logout = createAsyncThunk(
     try {
       await authAPI.logout();
       localStorage.removeItem('access_token');
+      localStorage.removeItem('terminal_id');
       return true;
     } catch (error: any) {
       localStorage.removeItem('access_token');
+      localStorage.removeItem('terminal_id');
       return rejectWithValue(error.response?.data?.message || 'Logout failed');
     }
   }
@@ -88,6 +93,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = action.payload.user;
+        state.terminal_id = action.payload.terminal_id;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -101,12 +107,14 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
+        state.terminal_id = null;
       })
       .addCase(logout.rejected, (state) => {
         state.loading = false;
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
+        state.terminal_id = null;
       })
       .addCase(forgotPassword.pending, (state) => {
         state.loading = true;

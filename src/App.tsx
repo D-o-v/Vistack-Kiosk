@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +8,8 @@ import { useAppSelector, useAppDispatch } from './store/hooks';
 import { guestCheckin, accessCodeCheckin, lookupVisitor, checkout } from './store/slices/checkinSlice';
 import { LoginPage } from './components/auth/LoginPage';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
+import { OrganizationVerification, OrganizationNotFound } from './components/auth/OrganizationVerification';
+import { NoOrganizationPage } from './components/auth/NoOrganizationPage';
 import { Router } from './components/Router';
 import { StatusBar } from './components/kiosk/StatusBar';
 import { EnhancedKioskHome } from './components/kiosk/EnhancedKioskHome';
@@ -21,6 +23,8 @@ import { CheckoutForm } from './components/kiosk/CheckoutForm';
 import { CheckoutConfirmation } from './components/kiosk/CheckoutConfirmation';
 import { EmergencyContacts } from './components/kiosk/EmergencyContacts';
 import { generateBadgeNumber } from './lib/utils';
+import { getOrganizationCodeFromUrl, getOrganizationCodeFromPath } from './lib/urlUtils';
+import { getCurrentTerminalId } from './lib/terminalUtils';
 import { Visitor } from './types';
 
 const queryClient = new QueryClient({
@@ -46,7 +50,7 @@ type KioskStep =
 
 function KioskApp() {
   const dispatch = useAppDispatch();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, terminal_id } = useAppSelector((state) => state.auth);
   const { loading: checkinLoading } = useAppSelector((state) => state.checkin);
   
   const [currentStep, setCurrentStep] = useState<KioskStep>('home');
@@ -54,6 +58,38 @@ function KioskApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(!isAuthenticated);
   const [accessCodeError, setAccessCodeError] = useState('');
+  const [organization, setOrganization] = useState<any>(null);
+  const [organizationError, setOrganizationError] = useState<string | null>(null);
+  const [verifyingOrganization, setVerifyingOrganization] = useState(true);
+  
+  // Get organization code from URL
+  const orgCode = getOrganizationCodeFromUrl() || getOrganizationCodeFromPath();
+  
+  useEffect(() => {
+    if (orgCode && !organization) {
+      // Organization code found in URL, verify it
+      setVerifyingOrganization(true);
+    } else if (!orgCode) {
+      // No organization code, skip verification
+      setVerifyingOrganization(false);
+    }
+  }, [orgCode, organization]);
+  
+  const handleOrganizationVerified = (orgData: any) => {
+    setOrganization(orgData);
+    setOrganizationError(null);
+    setVerifyingOrganization(false);
+  };
+  
+  const handleOrganizationError = (error: string) => {
+    setOrganizationError(error);
+    setVerifyingOrganization(false);
+  };
+  
+  const handleRetryOrganization = () => {
+    setOrganizationError(null);
+    setVerifyingOrganization(true);
+  };
   
   // Check for reset password parameters in URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -63,6 +99,32 @@ function KioskApp() {
   const isResetMode = urlParams.get('reset') === 'true';
   const isResetPassword = (resetToken && resetEmail && isResetMode) || currentPath.includes('/reset-password');
 
+  // Show no organization page if no code provided
+  if (!orgCode) {
+    return <NoOrganizationPage />;
+  }
+  
+  // Show organization verification if code exists and not verified
+  if (orgCode && verifyingOrganization) {
+    return (
+      <OrganizationVerification
+        code={orgCode}
+        onVerified={handleOrganizationVerified}
+        onError={handleOrganizationError}
+      />
+    );
+  }
+  
+  // Show organization not found if verification failed
+  if (orgCode && organizationError) {
+    return (
+      <OrganizationNotFound
+        code={orgCode}
+        onRetry={handleRetryOrganization}
+      />
+    );
+  }
+  
   if (isResetPassword) {
     return (
       <ResetPasswordPage 
@@ -79,7 +141,7 @@ function KioskApp() {
   }
 
   if (showLogin) {
-    return <LoginPage onLoginSuccess={() => setShowLogin(false)} />;
+    return <LoginPage onLoginSuccess={() => setShowLogin(false)} organization={organization} />;
   }
 
   const handleOptionSelect = (option: string) => {
@@ -111,8 +173,9 @@ function KioskApp() {
     try {
       const result = await dispatch(accessCodeCheckin({
         access_code: code,
-        checkin_method: 'access_code',
-        terminal_id: 2
+        // checkin_method: 'access_code',
+        checkin_method: 'qr',
+        terminal_id: terminal_id || getCurrentTerminalId()
       }));
       
       if (accessCodeCheckin.fulfilled.match(result)) {
@@ -221,7 +284,7 @@ function KioskApp() {
         last_name: data.name.split(' ').slice(1).join(' ') || '',
         email: data.email,
         phone: data.phone,
-        host_id: 2,
+        host_id: terminal_id || getCurrentTerminalId(),
         image: data.image,
         document: data.document,
         signature: data.signature
@@ -279,7 +342,7 @@ function KioskApp() {
     try {
       const result = await dispatch(checkout({
         query: identifier,
-        terminal_id: 2
+        terminal_id: terminal_id || getCurrentTerminalId()
       }));
       
       if (checkout.fulfilled.match(result)) {
