@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LogIn, Mail, Lock, AlertCircle, Shield, Zap, KeyRound } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, Shield, Zap, KeyRound, Monitor } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { login, clearError } from '../../store/slices/authSlice';
 import { ForgotPasswordPage } from './ForgotPasswordPage';
+import { terminalsAPI, Terminal } from '../../api/endpoints';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
@@ -15,16 +16,38 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const { loading, error } = useAppSelector((state) => state.auth);
   
   const [formData, setFormData] = useState({
-    terminal_id: 2,
+    terminal_id: 0,
     email: '',
     password: '',
   });
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [terminals, setTerminals] = useState<Terminal[]>([]);
+  const [loadingTerminals, setLoadingTerminals] = useState(true);
+
+  useEffect(() => {
+    fetchTerminals();
+  }, []);
+
+  const fetchTerminals = async () => {
+    try {
+      const response = await terminalsAPI.getTerminals();
+      const terminalData = response.data.data || response.data || [];
+      setTerminals(terminalData);
+      if (terminalData.length > 0) {
+        setFormData(prev => ({ ...prev, terminal_id: terminalData[0].id }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch terminals:', error);
+      setFormData(prev => ({ ...prev, terminal_id: 2 }));
+    } finally {
+      setLoadingTerminals(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) return;
+    if (!formData.email || !formData.password || !formData.terminal_id) return;
 
     try {
       const result = await dispatch(login(formData));
@@ -50,7 +73,6 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
@@ -63,9 +85,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="relative z-10 w-full max-w-md"
       >
-        {/* Main card */}
         <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
-          {/* Header */}
           <div className="text-center pt-8 pb-6 px-8">
             <motion.div
               initial={{ scale: 0 }}
@@ -93,13 +113,37 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
             </motion.p>
           </div>
 
-          {/* Form */}
           <div className="px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-5">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Monitor className="h-5 w-5 text-white/50" />
+                </div>
+                <select
+                  value={formData.terminal_id}
+                  onChange={(e) => handleInputChange('terminal_id', e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-200 appearance-none"
+                  disabled={loading || loadingTerminals}
+                  required
+                >
+                  <option value="" className="bg-gray-800 text-white">Select Terminal</option>
+                  {terminals.map((terminal) => (
+                    <option key={terminal.id} value={terminal.id} className="bg-gray-800 text-white">
+                      {terminal.name} {terminal.location && `- ${terminal.location}`}
+                    </option>
+                  ))}
+                </select>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 }}
                 className="relative"
               >
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -119,7 +163,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.7 }}
                 className="relative"
               >
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -168,7 +212,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.65 }}
+                transition={{ delay: 0.75 }}
                 className="flex justify-end"
               >
                 <button
@@ -184,11 +228,11 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               <motion.button
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
+                transition={{ delay: 0.8 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                disabled={loading || !formData.email || !formData.password}
+                disabled={loading || !formData.email || !formData.password || !formData.terminal_id || loadingTerminals}
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
               >
                 {loading ? (
@@ -206,11 +250,10 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               </motion.button>
             </form>
 
-            {/* Footer */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 0.9 }}
               className="mt-6 text-center space-y-2"
             >
               <div className="flex items-center justify-center space-x-2 text-white/40 text-xs">
@@ -224,7 +267,6 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
           </div>
         </div>
 
-        {/* Floating elements */}
         <motion.div
           animate={{ 
             y: [0, -10, 0],

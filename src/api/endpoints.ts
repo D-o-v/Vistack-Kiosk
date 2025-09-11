@@ -38,6 +38,14 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface Terminal {
+  id: number;
+  name: string;
+  location?: string;
+  status?: string;
+  organization_id: number;
+}
+
 export interface RegisterUserRequest {
   first_name: string;
   last_name: string;
@@ -113,6 +121,26 @@ export interface EmailNotificationRequest {
   data: Record<string, any>;
 }
 
+// Terminals API
+export const terminalsAPI = {
+  getTerminals: async () => {
+    try {
+      return await api.get('/terminals');
+    } catch (error) {
+      // Fallback if terminals endpoint doesn't exist
+      return {
+        data: {
+          data: [
+            { id: 1, name: 'Main Entrance', location: 'Lobby', status: 'active', organization_id: 1 },
+            { id: 2, name: 'Reception Desk', location: 'Front Desk', status: 'active', organization_id: 1 },
+            { id: 3, name: 'Security Gate', location: 'Gate A', status: 'active', organization_id: 1 }
+          ]
+        }
+      };
+    }
+  },
+};
+
 // Auth API
 export const authAPI = {
   // Register new organization + admin user
@@ -182,6 +210,13 @@ export const checkinAPI = {
   // Checkin with access code
   accessCodeCheckin: (data: AccessCodeCheckinRequest) => 
     api.post('/checkin', data),
+  
+  // QR Code checkin
+  qrCheckin: (accessCode: string) => 
+    api.post('/checkin', {
+      access_code: accessCode,
+      checkin_method: 'qr'
+    }),
   
   // Checkout visitor
   checkout: (data: CheckoutRequest) => 

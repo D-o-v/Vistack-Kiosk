@@ -104,6 +104,31 @@ export const checkout = createAsyncThunk(
   }
 );
 
+export const qrCheckin = createAsyncThunk(
+  'checkin/qrCheckin',
+  async (accessCode: string, { rejectWithValue }) => {
+    try {
+      const response = await checkinAPI.qrCheckin(accessCode);
+      return response.data;
+    } catch (error: any) {
+      const errorData = error.response?.data;
+      if (errorData?.errors) {
+        // Handle specific validation errors like "Access code has already been used"
+        const errorMessages = Object.entries(errorData.errors)
+          .map(([field, messages]: [string, any]) => {
+            if (Array.isArray(messages)) {
+              return messages.join(', ');
+            }
+            return messages;
+          })
+          .join('. ');
+        return rejectWithValue(errorMessages);
+      }
+      return rejectWithValue(errorData?.message || 'QR check-in failed');
+    }
+  }
+);
+
 const checkinSlice = createSlice({
   name: 'checkin',
   initialState,
@@ -174,6 +199,19 @@ const checkinSlice = createSlice({
         state.currentCheckin = action.payload;
       })
       .addCase(checkout.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // QR checkin
+      .addCase(qrCheckin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(qrCheckin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentCheckin = action.payload;
+      })
+      .addCase(qrCheckin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
