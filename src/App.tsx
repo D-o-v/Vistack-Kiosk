@@ -280,11 +280,13 @@ function KioskApp() {
         access_category: 2,
         checkin_method: 'manual',
         purpose: data.purpose,
-        first_name: data.name.split(' ')[0] || data.name,
-        last_name: data.name.split(' ').slice(1).join(' ') || '',
+        visitor_type: data.visitorType,
+        first_name: data.firstName || data.name?.split(' ')[0] || '',
+        last_name: data.lastName || data.name?.split(' ').slice(1).join(' ') || '',
         email: data.email,
         phone: data.phone,
-        host_id: terminal_id || getCurrentTerminalId(),
+        terminal_id: terminal_id || getCurrentTerminalId(),
+        host_id: data.hostId ? parseInt(data.hostId) : undefined,
         image: data.image,
         document: data.document,
         signature: data.signature
@@ -295,7 +297,7 @@ function KioskApp() {
         const status = responseData?.status || 'pending';
         const message = status === 'pending' 
           ? `Registration submitted! Your visitor tag is ${responseData?.visitor_tag}. Please wait for approval.`
-          : `Welcome, ${data.name}! Check-in successful.`;
+          : `Welcome, ${data.firstName || data.name}! Check-in successful.`;
         
         toast.success(message);
         

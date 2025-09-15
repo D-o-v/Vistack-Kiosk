@@ -29,3 +29,8 @@ export function generateBadgeNumber(): string {
 export function generateAppointmentCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
+
+export function formatUrl(url: string): string {
+  if (!url) return url;
+  return url.replace(/\\\//g, '/');
+}

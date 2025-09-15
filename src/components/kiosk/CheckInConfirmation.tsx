@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Check, Printer, ArrowLeft, User, FileText } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { formatTime } from '../../lib/utils';
+import { formatTime, formatUrl } from '../../lib/utils';
 
 interface CheckInConfirmationProps {
   checkinData: {
@@ -104,7 +104,7 @@ export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: Check
             {checkinData.image_url && (
               <div className="text-center">
                 <img 
-                  src={checkinData.image_url} 
+                  src={formatUrl(checkinData.image_url)} 
                   alt="Visitor Photo" 
                   className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-green-200"
                 />
@@ -240,14 +240,14 @@ export function CheckInConfirmation({ checkinData, onBack, onPrintBadge }: Check
                   {checkinData.document_url && (
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-blue-600">ID Document</span>
-                      <a href={checkinData.document_url} target="_blank" rel="noopener noreferrer" 
+                      <a href={formatUrl(checkinData.document_url)} target="_blank" rel="noopener noreferrer" 
                          className="text-xs text-blue-800 hover:underline">View</a>
                     </div>
                   )}
                   {checkinData.signature_url && (
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-blue-600">Signature</span>
-                      <a href={checkinData.signature_url} target="_blank" rel="noopener noreferrer" 
+                      <a href={formatUrl(checkinData.signature_url)} target="_blank" rel="noopener noreferrer" 
                          className="text-xs text-blue-800 hover:underline">View</a>
                     </div>
                   )}

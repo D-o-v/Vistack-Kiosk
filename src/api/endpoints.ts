@@ -81,12 +81,14 @@ export interface ResetPasswordRequest {
 export interface GuestCheckinRequest {
   access_category: number;
   checkin_method: string;
+  terminal_id?: number;
   purpose: string;
+  visitor_type?: string;
   first_name: string;
   last_name: string;
   email: string;
   phone?: string;
-  host_id?: number;
+  host_id?: number | string;
   image?: File;
   document?: File;
   signature?: File;
@@ -185,6 +187,20 @@ export const visitorAPI = {
   // Lookup visitor by email or phone
   lookup: (query: string) => 
     api.get(`/visitors/lookup?query=${encodeURIComponent(query)}`),
+  
+  // Get purposes of visit
+  getPurposes: () => 
+    api.get('/purposes'),
+  
+  // Get visitor types
+  getVisitorTypes: () => 
+    api.get('/visitor-types'),
+  
+  // Search hosts
+  searchHosts: (query: string) => 
+    api.get(`/host/search?query=${encodeURIComponent(query)}`, {
+      data: { query }
+    }),
 };
 
 // Checkin API
@@ -217,7 +233,10 @@ export const checkinAPI = {
   
   // QR Code checkin
   qrCheckin: (accessCode: string) => {
-    const terminalId = parseInt(localStorage.getItem('terminal_id') || '2');
+    const terminalId = parseInt(localStorage.getItem('terminal_id') || '0');
+    if (!terminalId) {
+      throw new Error('No terminal ID found. Please login again.');
+    }
     return api.post('/checkin', {
       access_code: accessCode,
       checkin_method: 'qr',
